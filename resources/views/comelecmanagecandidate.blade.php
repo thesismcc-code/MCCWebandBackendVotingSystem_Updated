@@ -1,418 +1,346 @@
-<!DOCTYPE html>
-<html lang="en">
+@extends('components.comelec-layout')
+@section('title', 'Manage Candidates — MCC Voting System')
+@section('page-title', 'Manage Candidates')
+@section('page-sub', '{{ $activeElectionName ?? "No active election" }}')
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Manage Candidates</title>
+@section('content')
 
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Alpine.js -->
-    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    <!-- Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
-        rel="stylesheet">
+<div x-data="{
+    activePosition: null,
+    showAdd: false,
+    showDeleteConfirm: false,
+    deleteId: null,
+    deleteName: '',
+    studentSearch: '',
+    get filteredStudents() {
+        if (!this.studentSearch) return window._students || [];
+        const q = this.studentSearch.toLowerCase();
+        return (window._students || []).filter(s => s.name.toLowerCase().includes(q));
+    }
+}">
 
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #0b1e47;
-            /* Deep Navy Background */
-        }
+@php $totalCandidates = array_sum(array_map('count', $byPosition)); @endphp
 
-        .bg-main-panel {
-            background-color: #0b2e7a;
-            /* Lighter Royal Blue Panel */
-        }
+{{-- Alerts --}}
+@if(session('success'))
+<div class="flex items-center gap-3 mb-5 px-4 py-3 rounded-xl text-sm font-semibold" style="background:linear-gradient(135deg,#dcfce7,#bbf7d0);color:#15803d;">
+    <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+    {{ session('success') }}
+</div>
+@endif
+@if(session('error'))
+<div class="flex items-center gap-3 mb-5 px-4 py-3 rounded-xl text-sm font-semibold" style="background:linear-gradient(135deg,#fee2e2,#fecaca);color:#dc2626;">
+    <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+    {{ session('error') }}
+</div>
+@endif
 
-        [x-cloak] {
-            display: none !important;
-        }
+{{-- Header row --}}
+<div class="flex items-center justify-between mb-5">
+    <div>
+        @if($activeElectionName)
+            <span class="inline-flex items-center gap-2 text-xs font-bold px-3 py-1.5 rounded-full" style="background:#e8f5ee;color:#1a5c38;">
+                <span class="w-1.5 h-1.5 rounded-full bg-green-500 inline-block animate-pulse"></span>
+                {{ $activeElectionName }}
+            </span>
+        @else
+            <span class="inline-flex items-center gap-2 text-xs font-bold px-3 py-1.5 rounded-full" style="background:#fee2e2;color:#dc2626;">
+                No active election
+            </span>
+        @endif
+    </div>
+    @if($activeElectionId)
+    <button @click="showAdd = true"
+        class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold text-white transition-all hover:-translate-y-0.5 hover:shadow-lg"
+        style="background:linear-gradient(135deg,#1a5c38,#2d7a52);box-shadow:0 4px 12px rgba(26,92,56,.3);">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+        Add Candidate
+    </button>
+    @endif
+</div>
 
-        /* Form elements overrides for image match */
-        .form-input {
-            border-color: #d1d5db;
-            /* gray-300 */
-        }
-
-        .form-input:focus {
-            border-color: #3b82f6;
-            /* blue-500 */
-            box-shadow: 0 0 0 1px #3b82f6;
-            outline: none;
-        }
-    </style>
-</head>
-
-<body x-data="{ activeModal: null, showAddCandidate: false, showSuccess: false }"
-    class="p-4 md:p-8 min-h-screen text-white flex flex-col font-sans antialiased selection:bg-blue-500 selection:text-white">
-
-    <!-- HEADER SECTION -->
-    <div class="max-w-7xl mx-auto w-full mb-6 flex items-center gap-4 px-2">
-        <a href="{{ route('view.comelec-dashboard') }}"
-            class="bg-white text-[#0b2e7a] rounded-full w-10 h-10 flex items-center justify-center hover:scale-105 transition-transform shadow-md flex-shrink-0">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
-            </svg>
-        </a>
-        <h1 class="text-2xl font-bold tracking-tight text-white">Manage Candidates</h1>
+@if(!$activeElectionId)
+    <div class="text-center py-16">
+        <svg class="w-12 h-12 mx-auto mb-3 text-gray-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        <p class="text-gray-400 text-sm font-semibold">No active election</p>
+        <p class="text-gray-300 text-xs mt-1">Candidates can only be managed during an active election.</p>
+    </div>
+@elseif(empty($byPosition))
+    <div class="text-center py-16">
+        <svg class="w-12 h-12 mx-auto mb-3 text-gray-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+        <p class="text-gray-400 text-sm font-semibold">No candidates yet</p>
+        <p class="text-gray-300 text-xs mt-1">Click "Add Candidate" to get started.</p>
+    </div>
+@else
+    {{-- Stats --}}
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5">
+        <div class="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm flex items-center gap-4 relative overflow-hidden">
+            <div class="absolute bottom-0 left-0 right-0 h-[3px]" style="background:linear-gradient(90deg,#1a5c38,#2d7a52,#4ade80);"></div>
+            <div class="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0" style="background:linear-gradient(135deg,#1a5c38,#2d7a52);box-shadow:0 4px 12px rgba(26,92,56,.3);">
+                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+            </div>
+            <div>
+                <div class="text-3xl font-extrabold text-gray-900 leading-none">{{ $totalCandidates }}</div>
+                <div class="text-xs font-700 text-gray-400 uppercase tracking-wide mt-1">Total Candidates</div>
+            </div>
+        </div>
+        <div class="bg-white rounded-2xl p-5 border border-gray-100 shadow-sm flex items-center gap-4 relative overflow-hidden">
+            <div class="absolute bottom-0 left-0 right-0 h-[3px]" style="background:linear-gradient(90deg,#0d9488,#2dd4bf);"></div>
+            <div class="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0" style="background:linear-gradient(135deg,#0d9488,#0f766e);box-shadow:0 4px 12px rgba(13,148,136,.3);">
+                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+            </div>
+            <div>
+                <div class="text-3xl font-extrabold text-gray-900 leading-none">{{ count($byPosition) }}</div>
+                <div class="text-xs font-700 text-gray-400 uppercase tracking-wide mt-1">Positions</div>
+            </div>
+        </div>
     </div>
 
-    <!-- MAIN CONTAINER -->
-    <div class="max-w-7xl mx-auto w-full bg-main-panel rounded-[2rem] p-8 shadow-2xl min-h-[600px] relative">
+    {{-- Position Cards --}}
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        @foreach($byPosition as $position => $candidates)
+        <div class="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 flex flex-col cursor-pointer hover:-translate-y-1 hover:shadow-lg transition-all duration-200 group"
+             @click="activePosition = {{ json_encode(['position' => $position, 'candidates' => $candidates]) }}">
 
-        <h2 class="text-white font-bold text-lg tracking-wide uppercase mb-8">POSITIONS</h2>
-
-        <!-- CARDS GRID (Visually muted if ANY modal is open) -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 transition-opacity duration-300"
-            :class="(activeModal || showAddCandidate || showSuccess) ? 'opacity-30 pointer-events-none' : 'opacity-100'">
-
-            <!-- PRESIDENT CARD -->
-            <div @click="activeModal = 'president'"
-                class="bg-white rounded-xl p-6 h-32 relative shadow-md transition-all duration-300 hover:shadow-lg hover:-translate-y-1 cursor-pointer group">
-                <div class="flex flex-col h-full justify-between">
-                    <div>
-                        <h3 class="text-black font-extrabold text-[0.95rem] uppercase tracking-wide">PRESIDENT</h3>
-                        <p class="text-black font-bold text-lg mt-1">2</p>
-                    </div>
+            <div class="px-5 py-4 flex items-center justify-between group-hover:opacity-90 transition-opacity" style="background:linear-gradient(135deg,#1a5c38,#2d7a52);">
+                <div>
+                    <span class="text-[10px] font-semibold uppercase tracking-widest" style="color:rgba(255,255,255,.6);">Position</span>
+                    <h3 class="text-white font-extrabold text-[16px] leading-tight mt-0.5">{{ strtoupper($position) }}</h3>
                 </div>
-                <div
-                    class="absolute bottom-5 right-5 w-8 h-8 rounded-full bg-[#103080] flex items-center justify-center group-hover:bg-[#0c2466] transition-colors">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-white" fill="none"
-                        viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                    </svg>
+                <div class="rounded-full px-3 py-1 text-white text-xs font-bold" style="background:rgba(255,255,255,.2);">
+                    {{ count($candidates) }}
                 </div>
             </div>
 
-            <!-- VICE PRESIDENT CARD -->
-            <div
-                class="bg-white rounded-xl p-6 h-32 relative shadow-md transition-all duration-300 hover:shadow-lg hover:-translate-y-1 cursor-pointer group">
-                <div class="flex flex-col h-full justify-between">
-                    <div>
-                        <h3 class="text-black font-extrabold text-[0.95rem] uppercase tracking-wide">VICE PRESIDENT</h3>
-                        <p class="text-black font-bold text-lg mt-1">2</p>
+            <div class="flex-1 divide-y divide-gray-50">
+                @foreach($candidates as $c)
+                <div class="flex items-center gap-3 px-4 py-3">
+                    @if(!empty($c['photo']))
+                        <img src="{{ $c['photo'] }}" class="w-9 h-9 rounded-full object-cover border-2 border-gray-100 flex-shrink-0">
+                    @else
+                        <div class="w-9 h-9 rounded-full flex items-center justify-center text-white font-bold text-sm flex-shrink-0" style="background:linear-gradient(135deg,#1a5c38,#2d7a52);">
+                            {{ strtoupper(substr($c['name'], 0, 1)) }}
+                        </div>
+                    @endif
+                    <div class="flex-1 min-w-0">
+                        <div class="font-semibold text-gray-900 text-[13px] truncate">{{ $c['name'] }}</div>
+                        <div class="text-[11px] text-gray-400 truncate">{{ $c['course'] }} · {{ $c['year_level'] }}</div>
                     </div>
+                    <span class="flex-shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-full
+                        {{ $c['status'] === 'approved' ? '' : ($c['status'] === 'rejected' ? '' : '') }}"
+                        style="{{ $c['status'] === 'approved' ? 'background:#dcfce7;color:#15803d;' : ($c['status'] === 'rejected' ? 'background:#fee2e2;color:#dc2626;' : 'background:#fef9c3;color:#92400e;') }}">
+                        {{ ucfirst($c['status']) }}
+                    </span>
                 </div>
-                <div
-                    class="absolute bottom-5 right-5 w-8 h-8 rounded-full bg-[#103080] flex items-center justify-center group-hover:bg-[#0c2466] transition-colors">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-white" fill="none"
-                        viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                    </svg>
-                </div>
+                @endforeach
             </div>
 
-            <!-- SENATORS CARD -->
-            <div @click="activeModal = 'senators'"
-                class="bg-white rounded-xl p-6 h-32 relative shadow-md transition-all duration-300 hover:shadow-lg hover:-translate-y-1 cursor-pointer group">
-                <div class="flex flex-col h-full justify-between">
-                    <div>
-                        <h3 class="text-black font-extrabold text-[0.95rem] uppercase tracking-wide">SENATORS</h3>
-                        <p class="text-black font-bold text-lg mt-1">2</p>
-                    </div>
-                </div>
-                <div
-                    class="absolute bottom-5 right-5 w-8 h-8 rounded-full bg-[#103080] flex items-center justify-center group-hover:bg-[#0c2466] transition-colors">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-white" fill="none"
-                        viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                    </svg>
-                </div>
+            <div class="px-4 py-2.5 border-t border-gray-100 flex items-center justify-center gap-1.5 text-[11px] font-medium transition-colors" style="background:#f8faf6;color:#9ab09a;">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                </svg>
+                Manage
             </div>
         </div>
+        @endforeach
+    </div>
+@endif
 
+{{-- ── POSITION DETAIL MODAL ── --}}
+<div x-cloak x-show="activePosition"
+     class="fixed inset-0 z-50 flex items-center justify-center px-4 py-8"
+     style="background:rgba(0,0,0,.55);backdrop-filter:blur(4px);"
+     @click.self="activePosition = null"
+     x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+     x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0">
 
-        <!-- ============================ -->
-        <!-- 1. PRESIDENT MODAL           -->
-        <!-- ============================ -->
-        <div x-show="activeModal === 'president'" x-transition.opacity.duration.300ms
-            class="absolute inset-0 z-40 flex items-start justify-center pt-20 pointer-events-none" x-cloak>
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden"
+         x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100">
 
-            <div
-                class="bg-white w-full max-w-[46rem] rounded-lg shadow-2xl overflow-hidden text-black mx-4 pointer-events-auto border border-gray-100 relative">
-
-                <div class="flex items-center justify-between px-8 py-5 border-b border-gray-200 bg-white">
-                    <h3 class="text-xl font-bold tracking-tight text-black uppercase">PRESIDENT</h3>
-                    <button @click="activeModal = null" class="text-gray-400 hover:text-gray-600 transition-colors">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path>
-                        </svg>
-                    </button>
-                </div>
-
-                <div class="bg-white">
-                    <table class="w-full text-left table-fixed">
-                        <thead>
-                            <tr class="border-b border-gray-200">
-                                <th class="pl-8 py-4 font-bold text-sm text-gray-900 w-[25%]">Name</th>
-                                <th class="px-4 py-4 font-bold text-sm text-gray-900 w-[30%]">Course</th>
-                                <th class="px-4 py-4 font-bold text-sm text-gray-900 w-[20%]">Year Level</th>
-                                <th class="pr-8 py-4 font-bold text-sm text-gray-900 w-[15%] text-right">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody class="text-sm">
-                            <tr class="border-b border-gray-100">
-                                <td class="pl-8 py-4 font-medium text-gray-800">Jose Perolino</td>
-                                <td class="px-4 py-4 text-gray-700">Information Technology</td>
-                                <td class="px-4 py-4 text-gray-700">4th Year</td>
-                                <td class="pr-8 py-4 flex items-center gap-2 justify-end">
-                                    <button
-                                        class="w-8 h-8 bg-blue-500 hover:bg-blue-600 rounded flex items-center justify-center text-white shadow-sm transition"><svg
-                                            class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                                            stroke-width="2">
-                                            <path stroke-linecap="round" stroke-linejoin="round"
-                                                d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                                        </svg></button>
-                                    <button
-                                        class="w-8 h-8 bg-red-100 hover:bg-red-200 rounded flex items-center justify-center text-red-500 shadow-sm transition"><svg
-                                            class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                                            stroke-width="2">
-                                            <path stroke-linecap="round" stroke-linejoin="round"
-                                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                        </svg></button>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="pl-8 py-4 font-medium text-gray-800">Jahaira Ampaso</td>
-                                <td class="px-4 py-4 text-gray-700">Computer Science</td>
-                                <td class="px-4 py-4 text-gray-700">1st Year</td>
-                                <td class="pr-8 py-4 text-right"></td>
-                            </tr>
-                        </tbody>
-                    </table>
-
-                    <div class="px-8 py-5 border-t border-gray-200">
-                        <div class="flex items-center gap-2 text-sm text-gray-800 font-medium">
-                            <svg class="w-4 h-4 text-yellow-500 flex-shrink-0" fill="none" stroke="currentColor"
-                                viewBox="0 0 24 24" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round"
-                                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                            </svg>
-                            <span>Maximum candidates reached for this position.</span>
-                        </div>
-                    </div>
-                </div>
+        <div class="px-6 py-5 flex items-center justify-between" style="background:linear-gradient(135deg,#1a5c38,#2d7a52);">
+            <div>
+                <p class="text-[10px] font-semibold uppercase tracking-widest" style="color:rgba(255,255,255,.6);">Position</p>
+                <h2 class="text-white font-extrabold text-xl mt-0.5" x-text="activePosition?.position?.toUpperCase()"></h2>
             </div>
+            <button @click="activePosition = null" class="w-8 h-8 rounded-full flex items-center justify-center text-white transition-colors" style="background:rgba(255,255,255,.2);">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
         </div>
 
+        <div class="overflow-x-auto max-h-[60vh] overflow-y-auto">
+            <table class="w-full text-sm">
+                <thead class="sticky top-0" style="background:#f8faf6;border-bottom:1px solid #e8ede3;">
+                    <tr>
+                        <th class="pl-6 pr-4 py-3 text-left font-bold text-gray-700 text-xs uppercase tracking-wide">Candidate</th>
+                        <th class="px-4 py-3 text-left font-bold text-gray-700 text-xs uppercase tracking-wide">Course</th>
+                        <th class="px-4 py-3 text-left font-bold text-gray-700 text-xs uppercase tracking-wide">Year</th>
+                        <th class="px-4 py-3 text-left font-bold text-gray-700 text-xs uppercase tracking-wide">Status</th>
+                        <th class="pr-6 py-3 text-right font-bold text-gray-700 text-xs uppercase tracking-wide">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                    <template x-for="c in activePosition?.candidates ?? []" :key="c.id">
+                        <tr class="hover:bg-green-50/30 transition-colors">
+                            <td class="pl-6 pr-4 py-3.5">
+                                <div class="flex items-center gap-3">
+                                    <template x-if="c.photo">
+                                        <img :src="c.photo" class="w-9 h-9 rounded-full object-cover border-2 border-gray-100 flex-shrink-0">
+                                    </template>
+                                    <template x-if="!c.photo">
+                                        <div class="w-9 h-9 rounded-full flex items-center justify-center text-white font-bold text-sm flex-shrink-0"
+                                             style="background:linear-gradient(135deg,#1a5c38,#2d7a52);"
+                                             x-text="c.name?.charAt(0)?.toUpperCase()"></div>
+                                    </template>
+                                    <span class="font-semibold text-gray-900" x-text="c.name"></span>
+                                </div>
+                            </td>
+                            <td class="px-4 py-3.5 text-gray-600 text-sm" x-text="c.course"></td>
+                            <td class="px-4 py-3.5 text-gray-600 text-sm" x-text="c.year_level"></td>
+                            <td class="px-4 py-3.5">
+                                <span class="text-[11px] font-bold px-2.5 py-1 rounded-full"
+                                      :style="c.status === 'approved' ? 'background:#dcfce7;color:#15803d;' : c.status === 'rejected' ? 'background:#fee2e2;color:#dc2626;' : 'background:#fef9c3;color:#92400e;'"
+                                      x-text="c.status?.charAt(0).toUpperCase() + c.status?.slice(1)"></span>
+                            </td>
+                            <td class="pr-6 py-3.5">
+                                <div class="flex items-center gap-2 justify-end">
+                                    {{-- Approve --}}
+                                    <form method="POST" action="{{ route('comelec.candidate.status') }}">
+                                        @csrf
+                                        <input type="hidden" name="candidate_id" :value="c.id">
+                                        <input type="hidden" name="status" value="approved">
+                                        <button type="submit" title="Approve"
+                                            class="w-8 h-8 rounded-lg flex items-center justify-center transition-all hover:-translate-y-0.5"
+                                            style="background:#dcfce7;color:#15803d;">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
+                                        </button>
+                                    </form>
+                                    {{-- Reject --}}
+                                    <form method="POST" action="{{ route('comelec.candidate.status') }}">
+                                        @csrf
+                                        <input type="hidden" name="candidate_id" :value="c.id">
+                                        <input type="hidden" name="status" value="rejected">
+                                        <button type="submit" title="Reject"
+                                            class="w-8 h-8 rounded-lg flex items-center justify-center transition-all hover:-translate-y-0.5"
+                                            style="background:#fef9c3;color:#d97706;">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>
+                                        </button>
+                                    </form>
+                                    {{-- Delete --}}
+                                    <button type="button" title="Remove"
+                                        @click="deleteId = c.id; deleteName = c.name; showDeleteConfirm = true; activePosition = null"
+                                        class="w-8 h-8 rounded-lg flex items-center justify-center transition-all hover:-translate-y-0.5"
+                                        style="background:#fee2e2;color:#dc2626;">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    </template>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
 
-        <!-- ============================ -->
-        <!-- 2. SENATORS MODAL            -->
-        <!-- ============================ -->
-        <div x-show="activeModal === 'senators'" x-transition.opacity.duration.300ms
-            class="absolute inset-0 z-40 flex items-start justify-center pt-20 pointer-events-none" x-cloak>
+{{-- ── ADD CANDIDATE MODAL ── --}}
+<div x-cloak x-show="showAdd"
+     class="fixed inset-0 z-50 flex items-center justify-center px-4 py-8"
+     style="background:rgba(0,0,0,.55);backdrop-filter:blur(4px);"
+     @click.self="showAdd = false"
+     x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100">
 
-            <div
-                class="bg-white w-full max-w-[46rem] rounded-lg shadow-2xl overflow-hidden text-black mx-4 pointer-events-auto border border-gray-100 relative">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden"
+         x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100">
 
-                <div class="flex items-center justify-between px-8 py-5 border-b border-gray-200 bg-white">
-                    <h3 class="text-xl font-bold tracking-tight text-black uppercase">SENATORS</h3>
-                    <button @click="activeModal = null" class="text-gray-400 hover:text-gray-600 transition-colors">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                            stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path>
-                        </svg>
-                    </button>
-                </div>
-
-                <div class="bg-white">
-                    <table class="w-full text-left table-fixed">
-                        <thead>
-                            <tr class="border-b border-gray-200">
-                                <th class="pl-8 py-4 font-bold text-sm text-gray-900 w-[25%]">Name</th>
-                                <th class="px-4 py-4 font-bold text-sm text-gray-900 w-[30%]">Course</th>
-                                <th class="px-4 py-4 font-bold text-sm text-gray-900 w-[20%]">Year Level</th>
-                                <th class="pr-8 py-4 font-bold text-sm text-gray-900 w-[15%] text-right">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody class="text-sm">
-                            <tr class="border-b border-gray-100">
-                                <td class="pl-8 py-4 font-medium text-gray-800">Jose Perolino</td>
-                                <td class="px-4 py-4 text-gray-700">Information Technology</td>
-                                <td class="px-4 py-4 text-gray-700">4th Year</td>
-                                <td class="pr-8 py-4 flex items-center gap-2 justify-end">
-                                    <button
-                                        class="w-8 h-8 bg-blue-500 hover:bg-blue-600 rounded flex items-center justify-center text-white shadow-sm transition"><svg
-                                            class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                                            stroke-width="2">
-                                            <path stroke-linecap="round" stroke-linejoin="round"
-                                                d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                                        </svg></button>
-                                    <button
-                                        class="w-8 h-8 bg-red-100 hover:bg-red-200 rounded flex items-center justify-center text-red-500 shadow-sm transition"><svg
-                                            class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                                            stroke-width="2">
-                                            <path stroke-linecap="round" stroke-linejoin="round"
-                                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                        </svg></button>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="pl-8 py-4 font-medium text-gray-800">Jahaira Ampaso</td>
-                                <td class="px-4 py-4 text-gray-700">Computer Science</td>
-                                <td class="px-4 py-4 text-gray-700">1st Year</td>
-                                <td class="pr-8 py-4 text-right"></td>
-                            </tr>
-                        </tbody>
-                    </table>
-
-                    <div class="px-8 py-4 border-t border-gray-200 bg-white flex justify-between items-center">
-                        <span class="text-sm text-gray-800 font-medium">You may add up to 2 more candidates.</span>
-                        <!-- Opens Add Candidate -->
-                        <button @click="activeModal = null; showAddCandidate = true"
-                            class="flex items-center gap-1.5 bg-[#0061ff] hover:bg-blue-600 text-white px-4 py-2 rounded text-xs font-semibold tracking-wide transition-colors">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20"
-                                fill="currentColor">
-                                <path
-                                    d="M8 9a3 3 0 100-6 3 3 0 000 6zM8 11a6 6 0 016 6H2a6 6 0 016-6zM16 7a1 1 0 10-2 0v1h-1a1 1 0 100 2h1v1a1 1 0 102 0v-1h1a1 1 0 100-2h-1V7z" />
-                            </svg>
-                            Add Candidate
-                        </button>
-                    </div>
-                </div>
-            </div>
+        <div class="px-6 py-5 flex items-center justify-between" style="background:linear-gradient(135deg,#1a5c38,#2d7a52);">
+            <h2 class="text-white font-extrabold text-lg">Add Candidate</h2>
+            <button @click="showAdd = false" class="w-8 h-8 rounded-full flex items-center justify-center text-white" style="background:rgba(255,255,255,.2);">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
         </div>
 
-
-        <!-- ============================ -->
-        <!-- 3. ADD CANDIDATE MODAL       -->
-        <!-- ============================ -->
-        <div x-show="showAddCandidate" x-transition.opacity.duration.300ms
-            class="absolute inset-0 z-50 flex items-start justify-center pt-6 pointer-events-none" x-cloak>
-
-            <div
-                class="bg-white w-full max-w-[28rem] rounded-xl shadow-2xl overflow-hidden text-black mx-4 pointer-events-auto border border-gray-100 relative">
-
-                <!-- Add Candidate Header -->
-                <div class="px-6 pt-5 pb-3 bg-white">
-                    <h3 class="text-lg font-bold tracking-tight text-black">Add Canditates</h3>
-                </div>
-
-                <!-- Form Content -->
-                <div class="px-6 pb-6 bg-white space-y-4">
-
-                    <!-- Image Upload -->
-                    <div class="flex items-center gap-4 py-1">
-                        <div class="w-20 h-20 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
-                            <!-- Placeholder Icon -->
-                            <svg class="w-8 h-8 text-gray-400" fill="none" viewBox="0 0 24 24"
-                                stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                            </svg>
-                        </div>
-                        <div class="flex flex-col gap-1.5">
-                            <span class="font-medium text-black">Upload Image</span>
-                            <button
-                                class="flex items-center justify-center gap-1.5 bg-[#0061ff] hover:bg-blue-600 text-white px-3 py-1.5 rounded-md text-xs font-medium transition-colors w-24">
-                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-                                </svg>
-                                Upload
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="h-px bg-gray-200 w-full my-1"></div>
-
-                    <!-- Fields -->
-                    <div class="space-y-3 text-sm">
-                        <!-- Full Name -->
-                        <div class="grid grid-cols-3 gap-2 items-center">
-                            <label class="col-span-1 font-medium text-black">Full Name:</label>
-                            <input type="text"
-                                class="col-span-2 form-input w-full rounded border px-3 py-1.5 text-black">
-                        </div>
-
-                        <!-- Course -->
-                        <div class="grid grid-cols-3 gap-2 items-center">
-                            <label class="col-span-1 font-medium text-black">Course:</label>
-                            <select
-                                class="col-span-2 form-input w-full rounded border px-3 py-1.5 text-black bg-white">
-                                <option></option>
-                            </select>
-                        </div>
-
-                        <!-- Year -->
-                        <div class="grid grid-cols-3 gap-2 items-center">
-                            <label class="col-span-1 font-medium text-black">Year:</label>
-                            <select
-                                class="col-span-2 form-input w-full rounded border px-3 py-1.5 text-black bg-white">
-                                <option></option>
-                            </select>
-                        </div>
-
-                        <!-- Political Party -->
-                        <div class="grid grid-cols-3 gap-2 items-center">
-                            <label class="col-span-1 font-medium text-black">Political Party:</label>
-                            <input type="text"
-                                class="col-span-2 form-input w-full rounded border px-3 py-1.5 text-black">
-                        </div>
-                    </div>
-
-                    <div class="h-px bg-gray-200 w-full my-2"></div>
-
-                    <!-- Platform / Agenda -->
-                    <div class="space-y-1.5">
-                        <label class="block font-medium text-black text-sm">Platform / Agenda</label>
-                        <textarea class="w-full form-input rounded border px-3 py-2 text-black text-sm resize-none h-24"></textarea>
-                    </div>
-
-                    <!-- Buttons -->
-                    <div class="flex items-center gap-3 pt-2">
-                        <button @click="showAddCandidate = false; activeModal = 'senators'"
-                            class="w-full py-2 border border-red-300 text-red-500 rounded hover:bg-red-50 font-medium text-sm transition-colors">
-                            Cancel
-                        </button>
-
-                        <!-- Opens Success Modal -->
-                        <button @click="showAddCandidate = false; showSuccess = true"
-                            class="w-full py-2 bg-[#0061ff] hover:bg-blue-600 text-white rounded font-medium text-sm transition-colors">
-                            Add Candidate
-                        </button>
-                    </div>
-
-                </div>
+        <form method="POST" action="{{ route('comelec.candidate.add') }}" enctype="multipart/form-data" class="px-6 py-6 space-y-4">
+            @csrf
+            <div>
+                <label class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">Student</label>
+                <input type="text" x-model="studentSearch" placeholder="Search student name..."
+                    class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:border-transparent mb-2"
+                    style="focus:ring-color:#1a5c38;">
+                <select name="student_id" required
+                    class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 bg-white appearance-none">
+                    <option value="">— Select student —</option>
+                    <template x-for="s in filteredStudents" :key="s.id">
+                        <option :value="s.id" x-text="s.name + (s.course ? ' · ' + s.course : '') + (s.year_level ? ' · ' + s.year_level : '')"></option>
+                    </template>
+                </select>
             </div>
-        </div>
-
-        <!-- ============================ -->
-        <!-- 4. SUCCESS MODAL             -->
-        <!-- ============================ -->
-        <div x-show="showSuccess" x-transition:enter="transition ease-out duration-300"
-            x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
-            class="absolute inset-0 z-[60] flex items-start justify-center pt-24 pointer-events-none" x-cloak>
-
-            <div
-                class="bg-white w-full max-w-[20rem] rounded-xl shadow-2xl p-6 text-black mx-4 pointer-events-auto border border-gray-100 relative text-center">
-
-                <!-- Close X -->
-                <button @click="showSuccess = false"
-                    class="absolute top-3 right-3 text-gray-400 hover:text-gray-600 transition-colors">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path>
-                    </svg>
+            <div>
+                <label class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">Position</label>
+                <select name="position" required
+                    class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 bg-white appearance-none">
+                    <option value="">— Select position —</option>
+                    @foreach($positions as $pos)
+                        <option value="{{ $pos['name'] }}">{{ $pos['name'] }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-1.5">Photo <span class="text-gray-300 font-normal normal-case">(optional)</span></label>
+                <input type="file" name="image" accept="image/*"
+                    class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-600 file:mr-3 file:py-1 file:px-3 file:rounded-lg file:border-0 file:font-semibold"
+                    style="file:background:#e8f5ee;file:color:#1a5c38;">
+            </div>
+            <div class="flex gap-3 pt-2">
+                <button type="button" @click="showAdd = false"
+                    class="flex-1 py-2.5 rounded-xl border-2 border-gray-200 text-gray-500 font-bold text-sm hover:bg-gray-50 transition-colors">
+                    Cancel
                 </button>
-
-                <!-- Check Icon Circle -->
-                <div
-                    class="w-16 h-16 rounded-full border-[3px] border-[#00d100] flex items-center justify-center mx-auto mb-3">
-                    <svg class="w-8 h-8 text-[#00d100]" fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                        stroke-width="3">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
-                    </svg>
-                </div>
-
-                <h3 class="text-xl font-bold tracking-tight text-black mb-1">Success!</h3>
-                <p class="text-sm text-gray-800 font-medium">Candidate has been successfully added.</p>
+                <button type="submit"
+                    class="flex-1 py-2.5 rounded-xl text-white font-bold text-sm transition-all hover:-translate-y-0.5"
+                    style="background:linear-gradient(135deg,#1a5c38,#2d7a52);box-shadow:0 4px 12px rgba(26,92,56,.3);">
+                    Add Candidate
+                </button>
             </div>
-        </div>
-
+        </form>
     </div>
+</div>
 
-</body>
+{{-- ── DELETE CONFIRM MODAL ── --}}
+<div x-cloak x-show="showDeleteConfirm"
+     class="fixed inset-0 z-50 flex items-center justify-center px-4"
+     style="background:rgba(0,0,0,.55);backdrop-filter:blur(4px);"
+     x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100">
 
-</html>
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-8 text-center"
+         x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100">
+
+        <div class="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" style="background:linear-gradient(135deg,#fee2e2,#fecaca);">
+            <svg class="w-8 h-8" fill="none" stroke="#dc2626" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+        </div>
+        <h3 class="text-xl font-extrabold text-gray-900 mb-2">Remove Candidate?</h3>
+        <p class="text-sm text-gray-500 font-medium mb-6">
+            Are you sure you want to remove <strong x-text="deleteName" class="text-gray-900"></strong> from the candidates list?
+        </p>
+        <div class="flex gap-3">
+            <button @click="showDeleteConfirm = false; deleteId = null"
+                class="flex-1 py-2.5 rounded-xl border-2 border-gray-200 text-gray-500 font-bold text-sm hover:bg-gray-50 transition-colors">
+                Cancel
+            </button>
+            <form method="POST" :action="'/comelec-candidates/' + deleteId" class="flex-1">
+                @csrf
+                @method('DELETE')
+                <button type="submit"
+                    class="w-full py-2.5 rounded-xl text-white font-bold text-sm transition-all hover:-translate-y-0.5"
+                    style="background:linear-gradient(135deg,#b91c1c,#dc2626);box-shadow:0 4px 12px rgba(185,28,28,.3);">
+                    Remove
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+</div>
+
+<script>window._students = @json($students);</script>
+@endsection

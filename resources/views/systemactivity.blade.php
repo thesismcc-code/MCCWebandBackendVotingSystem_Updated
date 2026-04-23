@@ -1,328 +1,130 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>System Activity - Fingerprint Voting System</title>
+@extends('components.admin-layout')
+@section('title', 'System Activity — MCC Voting System')
+@section('page-title', 'System Activity')
+@section('page-sub', 'Real-time monitoring of system usage and security events')
 
-    <!-- Bootstrap 5 CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+@section('content')
 
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #102864;
-            color: white;
-        }
+{{-- Toggle Buttons --}}
+<div class="flex gap-2 mb-5">
+    <button id="btnRealTime" onclick="showRealTime()"
+            class="px-5 py-2.5 rounded-xl text-sm font-bold transition-all shadow-sm text-white"
+            style="background:linear-gradient(135deg,#2d7a52,#1a5c38);">
+        Real Time Logs
+    </button>
+    <button id="btnError" onclick="showError()"
+            class="px-5 py-2.5 rounded-xl text-sm font-bold transition-all border border-gray-200 bg-white text-gray-600 hover:bg-gray-50">
+        Error Logs
+    </button>
+</div>
 
-        /* Custom Colors */
-        .bg-main-panel {
-            background-color: #0C3189;
-            border: 1px solid rgba(59, 130, 246, 0.5);
-        }
-
-        /* Back Button */
-        .btn-back {
-            background-color: white;
-            color: #113285;
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-            transition: transform 0.2s;
-            text-decoration: none;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        }
-        .btn-back:hover {
-            transform: scale(1.1);
-            color: #113285;
-        }
-
-        /* Toggle Buttons */
-        .btn-log-toggle {
-            padding: 8px 24px;
-            font-weight: 600;
-            border-radius: 8px;
-            border: none;
-            transition: all 0.2s;
-        }
-        .btn-log-active {
-            background-color: #0066FF;
-            color: white;
-        }
-        .btn-log-inactive {
-            background-color: white;
-            color: #111827;
-        }
-        .btn-log-inactive:hover {
-            background-color: #f3f4f6;
-        }
-
-        /* Filter Select Boxes */
-        .filter-box {
-            background-color: #102864;
-            border: 1px solid #3b82f6;
-            color: white;
-            border-radius: 8px;
-            padding: 8px 16px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            min-width: 200px;
-            cursor: pointer;
-        }
-        .filter-box:hover {
-            background-color: #153275;
-        }
-
-        /* Table Styling */
-        .table-container {
-            background-color: white;
-            border-radius: 16px;
-            overflow: hidden;
-            color: #111827;
-            min-height: 400px;
-        }
-        .table thead th {
-            background-color: white;
-            color: #111827;
-            font-weight: 700;
-            border-bottom: 2px solid #e5e7eb;
-            padding: 1.25rem 1.5rem;
-        }
-        .table tbody td {
-            padding: 1rem 1.5rem;
-            vertical-align: middle;
-            border-bottom: 1px solid #e5e7eb;
-            font-weight: 500;
-            color: #1f2937;
-            height: 60px;
-        }
-
-        /* Pagination Buttons */
-        .pagination-btn {
-            width: 32px;
-            height: 32px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 4px;
-            font-weight: 600;
-            text-decoration: none;
-            transition: background-color 0.2s;
-        }
-        .pg-active {
-            background-color: white;
-            color: #102864;
-        }
-        .pg-inactive {
-            background-color: rgba(255, 255, 255, 0.1);
-            color: white;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-        }
-        .pg-inactive:hover {
-            background-color: rgba(255, 255, 255, 0.2);
-            color: white;
-        }
-
-        /* Utility to hide elements */
-        .d-none {
-            display: none !important;
-        }
-    </style>
-</head>
-
-<body class="p-3 p-md-4 min-vh-100 d-flex flex-column">
-
-    <!-- HEADER SECTION -->
-    <div class="container-xl mb-4 px-0">
-        <div class="d-flex align-items-center gap-3">
-            <a href="{{ route('view.quick-access') }}" class="btn-back">
-                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
-            </a>
-            <div>
-                <h1 class="h3 fw-bold m-0 lh-sm">System Activity</h1>
-                <p class="small text-white-50 m-0 fw-medium">Real-time monitoring of system usage and security events</p>
-            </div>
+{{-- Filter Row --}}
+<div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-5">
+    <h2 id="tableTitle" class="text-lg font-bold text-gray-800">Real Time Logs</h2>
+    <div class="flex gap-3" x-data>
+        {{-- User Filter --}}
+        <div class="relative" x-data="{ open: false }">
+            <button @click="open = !open" @click.outside="open = false"
+                    class="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-gray-200 bg-white text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-colors min-w-36">
+                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                <span class="flex-1 text-left">{{ $currentUserFilter === 'all' ? 'All Users' : ucfirst($currentUserFilter) }}</span>
+                <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+            </button>
+            <ul x-show="open" x-transition x-cloak class="absolute right-0 mt-1.5 w-44 bg-white border border-gray-100 rounded-xl shadow-lg py-1.5 z-30 text-sm">
+                <li><a href="?user=all&date={{ $currentDateFilter }}" class="block px-4 py-2 font-medium text-gray-700 hover:bg-green-50 hover:text-[#1a5c38] transition-colors {{ $currentUserFilter === 'all' ? 'text-[#1a5c38] font-bold' : '' }}">All Users</a></li>
+                @foreach($users as $user)
+                <li><a href="?user={{ strtolower($user) }}&date={{ $currentDateFilter }}" class="block px-4 py-2 font-medium text-gray-700 hover:bg-green-50 hover:text-[#1a5c38] transition-colors {{ strtolower($currentUserFilter) === strtolower($user) ? 'text-[#1a5c38] font-bold' : '' }}">{{ $user }}</a></li>
+                @endforeach
+            </ul>
+        </div>
+        {{-- Date Filter --}}
+        <div class="relative" x-data="{ open: false }">
+            <button @click="open = !open" @click.outside="open = false"
+                    class="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-gray-200 bg-white text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-colors min-w-36">
+                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                <span class="flex-1 text-left">@if($currentDateFilter === 'all') All Dates @elseif($currentDateFilter === 'today') Today @elseif($currentDateFilter === 'yesterday') Yesterday @elseif($currentDateFilter === 'last_week') Last Week @elseif($currentDateFilter === 'last_month') Last Month @else All Dates @endif</span>
+                <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+            </button>
+            <ul x-show="open" x-transition x-cloak class="absolute right-0 mt-1.5 w-44 bg-white border border-gray-100 rounded-xl shadow-lg py-1.5 z-30 text-sm">
+                @foreach(['all' => 'All Dates', 'today' => 'Today', 'yesterday' => 'Yesterday', 'last_week' => 'Last Week', 'last_month' => 'Last Month'] as $val => $label)
+                <li><a href="?user={{ $currentUserFilter }}&date={{ $val }}" class="block px-4 py-2 font-medium text-gray-700 hover:bg-green-50 hover:text-[#1a5c38] transition-colors {{ $currentDateFilter === $val ? 'text-[#1a5c38] font-bold' : '' }}">{{ $label }}</a></li>
+                @endforeach
+            </ul>
         </div>
     </div>
+</div>
 
-    <!-- MAIN CONTAINER -->
-    <div class="container-xl bg-main-panel rounded-4 p-4 p-md-5 shadow-lg flex-fill d-flex flex-column gap-4 position-relative">
+@php
+    $tableHead = '<thead><tr style="background:#1a5c38;"><th class="px-5 py-3.5 text-center text-[11px] font-bold text-white uppercase tracking-widest w-36">Date</th><th class="px-5 py-3.5 text-left text-[11px] font-bold text-white uppercase tracking-widest w-36">Time</th><th class="px-5 py-3.5 text-left text-[11px] font-bold text-white uppercase tracking-widest w-36">User</th><th class="px-5 py-3.5 text-left text-[11px] font-bold text-white uppercase tracking-widest">Activity</th></tr></thead>';
+@endphp
 
-        <!-- Toggle Buttons -->
-        <div class="d-flex gap-3">
-            <button id="btnRealTime" class="btn-log-toggle btn-log-active" onclick="showRealTime()">Real Time Logs</button>
-            <button id="btnError" class="btn-log-toggle btn-log-inactive" onclick="showError()">Error Logs</button>
-        </div>
+{{-- Real Time Logs --}}
+<div id="realTimeTable" class="rounded-2xl border border-gray-100 overflow-hidden shadow-sm">
+    <table class="w-full text-sm">
+        <thead><tr style="background:#1a5c38;">
+            <th class="px-5 py-3.5 text-center text-[11px] font-bold text-white uppercase tracking-widest w-36">Date</th>
+            <th class="px-5 py-3.5 text-left text-[11px] font-bold text-white uppercase tracking-widest w-36">Time</th>
+            <th class="px-5 py-3.5 text-left text-[11px] font-bold text-white uppercase tracking-widest w-36">User</th>
+            <th class="px-5 py-3.5 text-left text-[11px] font-bold text-white uppercase tracking-widest">Activity</th>
+        </tr></thead>
+        <tbody class="divide-y divide-gray-100 bg-white">
+            @forelse($realTimeLogs as $log)
+                @php try { $ts = \Carbon\Carbon::parse($log['created_at'] ?? now()); $date = $ts->format('M d, Y'); $time = $ts->format('h:i:s A'); } catch(\Exception $e) { $date = 'N/A'; $time = 'N/A'; } @endphp
+                <tr class="hover:bg-green-50/30 transition-colors">
+                    <td class="px-5 py-3.5 text-center text-gray-500 text-[13px]">{{ $date }}</td>
+                    <td class="px-5 py-3.5 text-gray-500 text-[13px]">{{ $time }}</td>
+                    <td class="px-5 py-3.5 font-semibold text-[13px]" style="color:#1a5c38;">{{ $log['user'] ?? 'Unknown' }}</td>
+                    <td class="px-5 py-3.5 text-gray-700 text-[13px]">{{ $log['message'] ?? 'No message' }}</td>
+                </tr>
+            @empty
+                <tr><td colspan="4" class="px-5 py-14 text-center"><p class="text-sm font-medium text-gray-300">No real-time activity logs match your filters.</p></td></tr>
+            @endforelse
+        </tbody>
+    </table>
+</div>
 
-        <!-- Filter Row -->
-        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mt-2">
-            <!-- Dynamic Title -->
-            <h2 id="tableTitle" class="h2 fw-normal mb-0">Real Time Logs</h2>
+{{-- Error Logs --}}
+<div id="errorTable" class="rounded-2xl border border-gray-100 overflow-hidden shadow-sm hidden">
+    <table class="w-full text-sm">
+        <thead><tr style="background:#1a5c38;">
+            <th class="px-5 py-3.5 text-center text-[11px] font-bold text-white uppercase tracking-widest w-36">Date</th>
+            <th class="px-5 py-3.5 text-left text-[11px] font-bold text-white uppercase tracking-widest w-36">Time</th>
+            <th class="px-5 py-3.5 text-left text-[11px] font-bold text-white uppercase tracking-widest w-36">User</th>
+            <th class="px-5 py-3.5 text-left text-[11px] font-bold text-white uppercase tracking-widest">Activity</th>
+        </tr></thead>
+        <tbody class="divide-y divide-gray-100 bg-white">
+            @forelse($errorLogs as $log)
+                @php try { $ts = \Carbon\Carbon::parse($log['created_at'] ?? now()); $date = $ts->format('M d, Y'); $time = $ts->format('h:i:s A'); } catch(\Exception $e) { $date = 'N/A'; $time = 'N/A'; } @endphp
+                <tr class="hover:bg-red-50/30 transition-colors">
+                    <td class="px-5 py-3.5 text-center text-gray-500 text-[13px]">{{ $date }}</td>
+                    <td class="px-5 py-3.5 text-gray-500 text-[13px]">{{ $time }}</td>
+                    <td class="px-5 py-3.5 font-semibold text-[13px]" style="color:#1a5c38;">{{ $log['user'] ?? 'Unknown' }}</td>
+                    <td class="px-5 py-3.5 text-red-600 text-[13px] font-medium">{{ $log['message'] ?? 'No message' }}</td>
+                </tr>
+            @empty
+                <tr><td colspan="4" class="px-5 py-14 text-center"><p class="text-sm font-medium text-gray-300">No error logs match your filters.</p></td></tr>
+            @endforelse
+        </tbody>
+    </table>
+</div>
 
-            <div class="d-flex gap-3">
-                <!-- User Filter -->
-                <div class="dropdown">
-                    <button class="filter-box dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
-                        <span class="flex-grow-1 text-start">All Users</span>
-                    </button>
-                    <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" href="#">All Users</a></li>
-                        <li><a class="dropdown-item" href="#">Admin</a></li>
-                        <li><a class="dropdown-item" href="#">Student</a></li>
-                    </ul>
-                </div>
+<script>
+    function showRealTime() {
+        document.getElementById('btnRealTime').style.cssText = 'background:linear-gradient(135deg,#2d7a52,#1a5c38);color:white;';
+        document.getElementById('btnError').style.cssText = '';
+        document.getElementById('btnError').className = 'px-5 py-2.5 rounded-xl text-sm font-bold transition-all border border-gray-200 bg-white text-gray-600 hover:bg-gray-50';
+        document.getElementById('realTimeTable').classList.remove('hidden');
+        document.getElementById('errorTable').classList.add('hidden');
+        document.getElementById('tableTitle').innerText = 'Real Time Logs';
+    }
+    function showError() {
+        document.getElementById('btnError').style.cssText = 'background:linear-gradient(135deg,#2d7a52,#1a5c38);color:white;';
+        document.getElementById('btnRealTime').style.cssText = '';
+        document.getElementById('btnRealTime').className = 'px-5 py-2.5 rounded-xl text-sm font-bold transition-all border border-gray-200 bg-white text-gray-600 hover:bg-gray-50';
+        document.getElementById('errorTable').classList.remove('hidden');
+        document.getElementById('realTimeTable').classList.add('hidden');
+        document.getElementById('tableTitle').innerText = 'Error Logs';
+    }
+</script>
 
-                <!-- Date Filter -->
-                <div class="dropdown">
-                    <button class="filter-box dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                        <span class="flex-grow-1 text-start">Date</span>
-                    </button>
-                    <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" href="#">Today</a></li>
-                        <li><a class="dropdown-item" href="#">Yesterday</a></li>
-                        <li><a class="dropdown-item" href="#">Last Week</a></li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-
-        <!-- REAL TIME LOGS TABLE -->
-        <div id="realTimeTable" class="table-container shadow">
-            <div class="table-responsive">
-                <table class="table mb-0">
-                    <thead>
-                        <tr>
-                            <th scope="col" class="text-center" style="width: 15%">Date</th>
-                            <th scope="col" style="width: 15%">Time</th>
-                            <th scope="col" style="width: 15%">User</th>
-                            <th scope="col" style="width: 55%">Activity</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td class="text-center">12-12-2025</td>
-                            <td>10:01:23 AM</td>
-                            <td>Student</td>
-                            <td>Fingerprint scan successful</td>
-                        </tr>
-                        <tr>
-                            <td class="text-center">12-12-2025</td>
-                            <td>10:01:30 AM</td>
-                            <td>Admin</td>
-                            <td>Admin logged in</td>
-                        </tr>
-                        <tr>
-                            <td class="text-center">12-12-2025</td>
-                            <td>10:02:15 AM</td>
-                            <td>Admin</td>
-                            <td>Added new position</td>
-                        </tr>
-                        <tr>
-                            <td class="text-center">12-12-2025</td>
-                            <td>10:02:34 AM</td>
-                            <td>Student</td>
-                            <td>User logged in</td>
-                        </tr>
-                        <tr>
-                            <td class="text-center">12-12-2025</td>
-                            <td>10:03:00 AM</td>
-                            <td>Comelec</td>
-                            <td>Added candidate</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- ERROR LOGS TABLE (Initially Hidden) -->
-        <div id="errorTable" class="table-container shadow d-none">
-            <div class="table-responsive">
-                <table class="table mb-0">
-                    <thead>
-                        <tr>
-                            <th scope="col" class="text-center" style="width: 20%">Date</th>
-                            <th scope="col" style="width: 20%">Time</th>
-                            <th scope="col" style="width: 20%">User</th>
-                            <th scope="col" style="width: 40%">Activity</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td class="text-center">12-12-2025</td>
-                            <td>10:01:23 AM</td>
-                            <td>Student</td>
-                            <td class="text-danger">Failed fingerprint scan</td>
-                        </tr>
-                        <tr>
-                            <td class="text-center">12-12-2025</td>
-                            <td>10:01:30 AM</td>
-                            <td>Student</td>
-                            <td class="text-danger">Login attempt blocked</td>
-                        </tr>
-                        <!-- Empty rows for spacing consistency -->
-                        <tr><td></td><td></td><td></td><td></td></tr>
-                        <tr><td></td><td></td><td></td><td></td></tr>
-                        <tr><td></td><td></td><td></td><td></td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- Pagination -->
-        <div class="d-flex justify-content-center gap-2 mt-auto pt-4">
-            <a href="#" class="pagination-btn pg-active">1</a>
-            <a href="#" class="pagination-btn pg-inactive">2</a>
-            <a href="#" class="pagination-btn pg-active">
-                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
-            </a>
-        </div>
-
-    </div>
-
-    <!-- Bootstrap Bundle JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
-    <!-- Script to Handle Toggling -->
-    <script>
-        function showRealTime() {
-            // Logic for Buttons
-            document.getElementById('btnRealTime').classList.add('btn-log-active');
-            document.getElementById('btnRealTime').classList.remove('btn-log-inactive');
-
-            document.getElementById('btnError').classList.add('btn-log-inactive');
-            document.getElementById('btnError').classList.remove('btn-log-active');
-
-            // Logic for Tables
-            document.getElementById('realTimeTable').classList.remove('d-none');
-            document.getElementById('errorTable').classList.add('d-none');
-
-            // Logic for Title
-            document.getElementById('tableTitle').innerText = "Real Time Logs";
-        }
-
-        function showError() {
-            // Logic for Buttons
-            document.getElementById('btnError').classList.add('btn-log-active');
-            document.getElementById('btnError').classList.remove('btn-log-inactive');
-
-            document.getElementById('btnRealTime').classList.add('btn-log-inactive');
-            document.getElementById('btnRealTime').classList.remove('btn-log-active');
-
-            // Logic for Tables
-            document.getElementById('errorTable').classList.remove('d-none');
-            document.getElementById('realTimeTable').classList.add('d-none');
-
-            // Logic for Title
-            document.getElementById('tableTitle').innerText = "Error Logs";
-        }
-    </script>
-</body>
-</html>
+@endsection

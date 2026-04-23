@@ -318,12 +318,9 @@ class MobileApiController extends Controller
             $positionsSnap = $this->db->getReference('positions')->getSnapshot();
             $maxVoteMap    = [];
             if ($positionsSnap->exists() && $positionsSnap->getValue()) {
-                foreach ($positionsSnap->getValue() as $posId => $p) {
-                    $max = (int) ($p['max_vote'] ?? $p['max_votes'] ?? 1);
-                    // Index by both the Firebase key and the position name (lowercased)
-                    $maxVoteMap[strtolower($posId)] = $max;
+                foreach ($positionsSnap->getValue() as $p) {
                     $pname = strtolower($p['position_name'] ?? $p['name'] ?? '');
-                    if ($pname) $maxVoteMap[$pname] = $max;
+                    $maxVoteMap[$pname] = (int) ($p['max_vote'] ?? 1);
                 }
             }
 
@@ -445,7 +442,7 @@ class MobileApiController extends Controller
             // Find the user linked to this fingerprint
             $fp   = \App\Models\Fingerprint::where('fid', $result['finger_id'])->first();
             if (!$fp) {
-                // finger_id is the crc32 hash � reverse lookup via all fingerprints
+                // finger_id is the crc32 hash â€” reverse lookup via all fingerprints
                 $fp = \App\Models\Fingerprint::all()->first(function ($f) use ($result) {
                     return FingerprintHelper::fingerIdFromUserId($f->fid) === (int) $result['finger_id'];
                 });

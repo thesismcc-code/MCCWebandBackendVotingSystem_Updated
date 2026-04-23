@@ -12,6 +12,7 @@
         * { font-family: 'Plus Jakarta Sans', sans-serif; }
         body { background: #f4f6f0; }
 
+        /* ── Sidebar ── */
         .sidebar {
             width: 280px;
             background: linear-gradient(180deg, #ffffff 0%, #fafbf9 100%);
@@ -64,6 +65,7 @@
         .nav-link.active .icon { opacity: 1; }
         .nav-link span { position: relative; z-index: 1; }
 
+        /* ── Main ── */
         .main-wrap { margin-left: 280px; min-height: 100vh; display: flex; flex-direction: column; }
         .topbar {
             background: linear-gradient(135deg, #ffffff, #fafbf9);
@@ -102,6 +104,7 @@
             background: linear-gradient(90deg, transparent, rgba(26,92,56,.1), transparent);
         }
 
+        /* ── Scrollbar ── */
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: linear-gradient(180deg, #c8dcc8, #b8d0b8); border-radius: 10px; }

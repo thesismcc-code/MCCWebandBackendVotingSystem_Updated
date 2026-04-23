@@ -1,393 +1,89 @@
-<!DOCTYPE html>
-<html lang="en">
+@extends('components.student-layout')
+@section('title', 'My Profile — MCC Student Portal')
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>MCC - Student Profile</title>
+@section('content')
 
-    <style>
-        :root {
-            --mcc-blue: #0F1D46;
-            --mcc-red: #D7282F;
-            --brand-white: #FFFFFF;
-            --text-dark: #222222;
-            --text-muted: #8F8F8F;
-            --bg-body: #FAFBFC;
-            --border-standard: #EDEDED;
-            --input-shadow: 0px 4px 18px rgba(0, 0, 0, 0.05);
-            --transition: all 0.3s ease;
-        }
+<div class="flex items-center gap-3 mb-6">
+    <button onclick="history.back()"
+        class="w-10 h-10 rounded-full flex items-center justify-center transition-all hover:scale-105"
+        style="background:white;border:1px solid #e8ede3;color:#1a3a1a;box-shadow:0 2px 8px rgba(0,0,0,.06);">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+    </button>
+    <div>
+        <h1 class="text-2xl font-extrabold text-gray-900" style="letter-spacing:-0.02em;">My Profile</h1>
+        <p class="text-gray-400 text-sm mt-0.5">Manage your account information</p>
+    </div>
+</div>
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-        }
+<div class="s-card p-8 relative overflow-hidden">
+    <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#1a5c38,#2d7a52,#4ade80);"></div>
 
-        body {
-            background-color: var(--brand-white);
-            color: var(--text-dark);
-            position: relative;
-            overflow-x: hidden;
-            min-height: 100vh;
-        }
-
-        .watermark {
-            position: fixed;
-            top: 55%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            opacity: 0.03;
-            z-index: 0;
-            pointer-events: none;
-            width: 50%;
-            max-width: 700px;
-        }
-
-        .watermark img {
-            width: 100%;
-            height: auto;
-            display: block;
-        }
-
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 1rem 3rem;
-            background-color: var(--brand-white);
-            border-bottom: 1px solid var(--border-standard);
-            position: relative;
-            z-index: 50;
-        }
-
-        .nav-left {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        .nav-left img {
-            height: 45px;
-            border-radius: 50%;
-        }
-
-        .nav-left h1 {
-            color: var(--mcc-blue);
-            font-size: 1.25rem;
-            font-weight: 700;
-            margin: 0;
-        }
-
-        .nav-right {
-            display: flex;
-            align-items: center;
-            gap: 1.5rem;
-        }
-
-        .icon-btn-bg {
-            display: inline-flex;
-            justify-content: center;
-            align-items: center;
-            background-color: #EDEEF0;
-            border-radius: 50%;
-            width: 42px;
-            height: 42px;
-            cursor: pointer;
-            border: none;
-            transition: var(--transition);
-        }
-
-        .icon-btn-bg svg {
-            width: 18px;
-            fill: var(--mcc-blue);
-        }
-
-        .icon-btn-bg:hover {
-            background-color: #DDE0E5;
-        }
-
-        .header-avatar {
-            height: 44px;
-            width: 44px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 3px solid var(--mcc-blue);
-        }
-
-        main {
-            position: relative;
-            z-index: 10;
-            max-width: 1024px;
-            margin: 0 auto;
-            padding: 3rem 1.5rem;
-        }
-
-        .btn-pill {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            font-weight: 500;
-            font-size: 0.95rem;
-            cursor: pointer;
-            transition: var(--transition);
-            padding: 10px 24px;
-            border-radius: 9999px;
-            text-decoration: none;
-            border: none;
-        }
-
-        .btn-pill-back {
-            background-color: var(--mcc-blue);
-            color: var(--brand-white);
-        }
-
-        .btn-pill-back svg {
-            width: 18px;
-            height: 18px;
-            stroke: currentColor;
-            fill: none;
-            stroke-width: 2;
-        }
-
-        .btn-pill-update {
-            background-color: var(--mcc-blue);
-            color: var(--brand-white);
-            padding: 12px 32px;
-        }
-
-        .profile-row-editor {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-top: 3.5rem;
-            margin-bottom: 2rem;
-        }
-
-        .profile-avatar-block {
-            display: flex;
-            align-items: center;
-            gap: 1.5rem;
-        }
-
-        .main-avatar {
-            width: 130px;
-            height: 130px;
-            border-radius: 50%;
-            object-fit: cover;
-        }
-
-        .controls-flex {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        .btn-outline-normal {
-            padding: 12px 20px;
-            font-weight: 500;
-            font-size: 0.95rem;
-            border: 1px solid var(--border-standard);
-            border-radius: 12px;
-            background-color: var(--brand-white);
-            color: var(--text-dark);
-            cursor: pointer;
-            transition: var(--transition);
-        }
-
-        .btn-outline-danger {
-            padding: 12px 30px;
-            font-weight: 500;
-            font-size: 0.95rem;
-            border: 1px solid var(--mcc-red);
-            border-radius: 12px;
-            background-color: var(--brand-white);
-            color: var(--mcc-red);
-            cursor: pointer;
-            transition: var(--transition);
-        }
-
-        .btn-outline-normal:hover,
-        .btn-outline-danger:hover {
-            background-color: #F8F9FB;
-        }
-
-        .form-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            column-gap: 2.5rem;
-            row-gap: 2rem;
-            margin-top: 1.5rem;
-        }
-
-        .form-control-block {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .form-control-block label {
-            margin-bottom: 0.75rem;
-            font-size: 1rem;
-            color: var(--text-dark);
-            font-weight: 500;
-        }
-
-        .exact-card-input {
-            padding: 20px 24px;
-            font-size: 1rem;
-            font-family: inherit;
-            color: var(--text-dark);
-            background-color: var(--brand-white);
-            border: 2px solid transparent;
-            border-radius: 10px;
-            box-shadow: var(--input-shadow);
-            outline: none;
-            transition: var(--transition);
-        }
-
-        .exact-card-input::placeholder {
-            color: var(--text-muted);
-        }
-
-        .exact-card-input:focus {
-            border-color: #E2E8F0;
-        }
-
-        .placeholder-mimic {
-            color: var(--text-muted) !important;
-        }
-
-        .warning-text-note {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-top: 10px;
-            font-size: 0.9rem;
-            color: var(--text-dark);
-        }
-
-        .exclam-indicator {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 16px;
-            height: 16px;
-            border-radius: 50%;
-            background-color: var(--mcc-red);
-            color: white;
-            font-weight: 800;
-            font-size: 11px;
-        }
-
-        @media (max-width: 800px) {
-            .profile-row-editor {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 2rem;
-            }
-
-            .form-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .btn-pill-update {
-                align-self: flex-start;
-            }
-
-            .watermark {
-                width: 80%;
-            }
-        }
-    </style>
-</head>
-
-<body>
-
-    <div class="watermark">
-        <img src="{{ asset('icons/logo_white_bg.png') }}" alt="big-logo">
+    {{-- Avatar row --}}
+    <div class="flex flex-wrap items-center justify-between gap-5 mb-8 pb-8" style="border-bottom:1px solid #f0f4eb;">
+        <div class="flex items-center gap-5">
+            <div class="w-20 h-20 rounded-2xl flex items-center justify-center text-white text-3xl font-extrabold flex-shrink-0"
+                 style="background:linear-gradient(135deg,#1a5c38,#2d7a52);box-shadow:0 6px 20px rgba(26,92,56,.3);">
+                {{ strtoupper(substr(session('auth_user.first_name', 'S'), 0, 1)) }}
+            </div>
+            <div>
+                <div class="text-lg font-extrabold text-gray-900">
+                    {{ session('auth_user.first_name', '') }} {{ session('auth_user.last_name', '') }}
+                </div>
+                <div class="text-sm text-gray-400 mt-0.5">{{ session('auth_user.email', '') }}</div>
+                <span class="inline-flex items-center gap-1.5 mt-2 text-[11px] font-bold px-2.5 py-1 rounded-full" style="background:#e8f5ee;color:#1a5c38;">
+                    <span class="w-1.5 h-1.5 rounded-full bg-green-500 inline-block"></span>
+                    Student
+                </span>
+            </div>
+        </div>
+        <button type="submit" form="profile-form"
+            class="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl text-white font-bold text-sm transition-all hover:-translate-y-0.5 hover:shadow-lg"
+            style="background:linear-gradient(135deg,#1a5c38,#2d7a52);box-shadow:0 4px 12px rgba(26,92,56,.3);">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+            Update Profile
+        </button>
     </div>
 
-    <header class="header">
-        <div class="nav-left">
-            <img src="{{ asset('icons/logo_white_bg.png') }}" alt="logo">
-            <h1>Digital Voting System</h1>
-        </div>
-        <div class="nav-right">
-            <button class="icon-btn-bg" aria-label="Notifications">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                    <path
-                        d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2zm-2 1H8v-6c0-2.48 1.51-4.5 4-4.5s4 2.02 4 4.5v6z" />
-                </svg>
-            </button>
-            <img class="header-avatar" src="{{ asset('images/person_image.png') }}" alt="profile-picture">
-        </div>
-    </header>
-
-    <main>
-        <a href="javascript:history.back()" class="btn-pill btn-pill-back">
-            <svg viewBox="0 0 24 24">
-                <path d="M20 12H4M4 12L10 6M4 12L10 18" />
-            </svg>
-            Back
-        </a>
-
-        <section class="profile-row-editor">
-
-            <div class="profile-avatar-block">
-                <img class="main-avatar" src="{{ asset('images/person_image.png') }}" alt="Main Profile Photo">
-                <div class="controls-flex">
-                    <button type="button" class="btn-outline-normal">Upload new picture</button>
-                    <button type="button" class="btn-outline-danger">Delete</button>
-                </div>
+    {{-- Form --}}
+    <form id="profile-form" action="{{ route('update-profile') }}" method="POST">
+        @csrf
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div>
+                <label class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">First Name</label>
+                <input type="text" name="first_name"
+                    value="{{ session('auth_user.first_name', '') }}"
+                    class="w-full px-4 py-3 rounded-xl border text-sm font-medium text-gray-800 focus:outline-none focus:ring-2 transition-all"
+                    style="border-color:#e5e7eb;background:#fafafa;focus:ring-color:#1a5c38;">
             </div>
-
-            <button type="submit" form="profile-form" class="btn-pill btn-pill-update">Update Profile</button>
-        </section>
-
-
-
-        <form id="profile-form" action="{{ route('update-profile') }}" method="POST">
-            @csrf
-
-
-
-            <div class="form-grid">
-
-                <div class="form-control-block">
-                    <label>First Name</label>
-                    <input type="text" class="exact-card-input" value="Myles Macrohon">
-                </div>
-
-                <div class="form-control-block">
-                    <label>Last Name</label>
-                    <input type="text" class="exact-card-input" value="Myles Macrohon">
-                </div>
-
-                <div class="form-control-block">
-                    <label>Email Address</label>
-                    <input type="email" class="exact-card-input placeholder-mimic" placeholder="example@gmail.com"
-                        value="">
-
-                    <div class="warning-text-note">
-                        <span class="exclam-indicator">!</span>
-                        Enter your email to activate your account
-                    </div>
-                </div>
-
-                <div class="form-control-block">
-                    <label>Degree</label>
-                    <input type="text" class="exact-card-input" value="BS in Information Technology">
-                </div>
-
+            <div>
+                <label class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Last Name</label>
+                <input type="text" name="last_name"
+                    value="{{ session('auth_user.last_name', '') }}"
+                    class="w-full px-4 py-3 rounded-xl border text-sm font-medium text-gray-800 focus:outline-none focus:ring-2 transition-all"
+                    style="border-color:#e5e7eb;background:#fafafa;">
             </div>
-
-        </form>
-
-    </main>
-
-</body>
-
-</html>
+            <div>
+                <label class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Email Address</label>
+                <input type="email" name="email"
+                    value="{{ session('auth_user.email', '') }}"
+                    placeholder="example@gmail.com"
+                    class="w-full px-4 py-3 rounded-xl border text-sm font-medium text-gray-800 focus:outline-none focus:ring-2 transition-all"
+                    style="border-color:#e5e7eb;background:#fafafa;">
+                @if(!session('auth_user.email'))
+                <div class="flex items-center gap-2 mt-2">
+                    <span class="w-4 h-4 rounded-full flex items-center justify-center text-white text-[10px] font-bold flex-shrink-0" style="background:#dc2626;">!</span>
+                    <span class="text-xs text-gray-500">Enter your email to activate your account</span>
+                </div>
+                @endif
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Degree / Course</label>
+                <input type="text" name="course"
+                    value="{{ session('auth_user.course', '') }}"
+                    class="w-full px-4 py-3 rounded-xl border text-sm font-medium text-gray-800 focus:outline-none focus:ring-2 transition-all"
+                    style="border-color:#e5e7eb;background:#fafafa;">
+            </div>
+        </div>
+    </form>
+</div>
+@endsection

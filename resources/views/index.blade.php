@@ -10,13 +10,14 @@
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
         html, body { height: 100%; font-family: 'Plus Jakarta Sans', sans-serif; overflow: hidden; }
 
-        /* ── Left panel ── */
+        /* ── Left panel — matches sidebar gradient ── */
         .left-panel {
             background: linear-gradient(160deg, #0a2218 0%, #1a5c38 45%, #2d7a52 100%);
             position: relative;
             overflow: hidden;
         }
 
+        /* grid overlay — same feel as the system's card borders */
         .left-panel::before {
             content: '';
             position: absolute; inset: 0;
@@ -26,6 +27,7 @@
             background-size: 44px 44px;
         }
 
+        /* top-left radial glow */
         .left-panel::after {
             content: '';
             position: absolute;
@@ -35,6 +37,7 @@
             pointer-events: none;
         }
 
+        /* floating particles */
         .particle {
             position: absolute; border-radius: 50%;
             background: rgba(255,255,255,0.07);
@@ -47,6 +50,7 @@
             100% { transform: translateY(-120px) scale(1); opacity: 0; }
         }
 
+        /* fingerprint ring pulse */
         @keyframes ring-pulse {
             0%   { transform: scale(1);   opacity: 0.55; }
             100% { transform: scale(1.65); opacity: 0; }
@@ -55,10 +59,11 @@
         .rp2 { animation: ring-pulse 2.4s ease-out 0.8s infinite; }
         .rp3 { animation: ring-pulse 2.4s ease-out 1.6s infinite; }
 
+        /* live dot */
         @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.25} }
         .live-dot { animation: blink 1.8s ease-in-out infinite; }
 
-        /* ── Right panel ── */
+        /* ── Right panel — matches body bg #f4f6f0 ── */
         .right-panel {
             background: #f4f6f0;
             position: relative; overflow: hidden;
@@ -72,6 +77,7 @@
             pointer-events: none;
         }
 
+        /* card — matches .content-card */
         .login-card {
             background: linear-gradient(135deg, #ffffff, #fafbf9);
             border-radius: 24px;
@@ -79,6 +85,7 @@
             box-shadow: 0 4px 6px -2px rgba(26,92,56,0.05), 0 20px 60px -10px rgba(26,92,56,0.12);
         }
 
+        /* inputs */
         .field {
             width: 100%; background: #f8faf7;
             border: 1.5px solid #d1ddd1; border-radius: 12px;
@@ -94,6 +101,7 @@
         }
         .field.has-right { padding-right: 3rem; }
 
+        /* button — matches .nav-link.active */
         .btn-primary {
             width: 100%;
             background: linear-gradient(135deg, #1a5c38 0%, #2d7a52 100%);
@@ -116,15 +124,19 @@
 <body>
 <div style="display:flex;height:100vh;width:100vw;">
 
-    {{-- LEFT — Brand / Hero panel --}}
+    {{-- ══════════════════════════════════════
+         LEFT — Brand / Hero panel
+    ══════════════════════════════════════ --}}
     <div class="left-panel" style="width:52%;display:flex;flex-direction:column;justify-content:space-between;padding:3rem 3.5rem;position:relative;z-index:0;">
 
+        {{-- particles --}}
         <div class="particle" style="width:6px;height:6px;left:14%;animation-duration:13s;animation-delay:0s;"></div>
         <div class="particle" style="width:4px;height:4px;left:34%;animation-duration:9s;animation-delay:2s;"></div>
         <div class="particle" style="width:8px;height:8px;left:62%;animation-duration:15s;animation-delay:4s;"></div>
         <div class="particle" style="width:5px;height:5px;left:80%;animation-duration:11s;animation-delay:1s;"></div>
         <div class="particle" style="width:3px;height:3px;left:50%;animation-duration:8s;animation-delay:6s;"></div>
 
+        {{-- Top: logo + name --}}
         <div style="position:relative;z-index:2;">
             <div style="display:flex;align-items:center;gap:14px;">
                 <div style="width:48px;height:48px;border-radius:14px;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;backdrop-filter:blur(8px);">
@@ -137,8 +149,10 @@
             </div>
         </div>
 
+        {{-- Center: fingerprint + headline --}}
         <div style="position:relative;z-index:2;display:flex;flex-direction:column;align-items:flex-start;gap:2rem;">
 
+            {{-- Fingerprint pulse --}}
             <div style="position:relative;width:120px;height:120px;display:flex;align-items:center;justify-content:center;">
                 <div class="rp"  style="position:absolute;width:120px;height:120px;border-radius:50%;border:1.5px solid rgba(110,231,183,0.55);"></div>
                 <div class="rp2" style="position:absolute;width:120px;height:120px;border-radius:50%;border:1.5px solid rgba(110,231,183,0.4);"></div>
@@ -165,6 +179,7 @@
                 </p>
             </div>
 
+            {{-- Feature pills --}}
             <div style="display:flex;flex-wrap:wrap;gap:10px;">
                 <div style="display:flex;align-items:center;gap:7px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);border-radius:10px;padding:8px 14px;">
                     <svg width="14" height="14" fill="none" stroke="#4ade80" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
@@ -181,6 +196,7 @@
             </div>
         </div>
 
+        {{-- Bottom stats --}}
         <div style="position:relative;z-index:2;display:flex;gap:2.5rem;padding-top:2rem;border-top:1px solid rgba(255,255,255,0.1);">
             <div>
                 <div style="color:#fff;font-size:1.5rem;font-weight:800;">100%</div>
@@ -197,10 +213,13 @@
         </div>
     </div>
 
-    {{-- RIGHT — Login form --}}
+    {{-- ══════════════════════════════════════
+         RIGHT — Login form
+    ══════════════════════════════════════ --}}
     <div class="right-panel" style="width:48%;display:flex;align-items:center;justify-content:center;padding:2rem;">
         <div class="login-card" style="width:100%;max-width:420px;padding:2.8rem 2.6rem;position:relative;z-index:2;" x-data="{ show: false }">
 
+            {{-- Header --}}
             <div style="text-align:center;margin-bottom:1.8rem;">
                 <div style="display:inline-flex;align-items:center;justify-content:center;width:68px;height:68px;border-radius:18px;background:linear-gradient(135deg,#1a5c38,#2d7a52);box-shadow:0 8px 24px rgba(26,92,56,0.3);margin-bottom:1.1rem;">
                     <img src="{{ asset('icons/logo_white_bg.png') }}" alt="MCC" style="width:50px;height:50px;object-fit:contain;border-radius:10px;">
@@ -209,12 +228,14 @@
                 <p style="color:#8fb08f;font-size:0.78rem;font-weight:500;margin-top:4px;">Mandaue City College</p>
             </div>
 
+            {{-- Divider --}}
             <div style="display:flex;align-items:center;gap:10px;margin-bottom:1.6rem;">
                 <div style="flex:1;height:1px;background:#e8ede3;"></div>
                 <span style="font-size:0.7rem;font-weight:700;color:#8fb08f;letter-spacing:0.08em;text-transform:uppercase;">Sign in to continue</span>
                 <div style="flex:1;height:1px;background:#e8ede3;"></div>
             </div>
 
+            {{-- Status (password reset success) --}}
             @if(session('status'))
                 <div style="display:flex;align-items:center;gap:10px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:12px 16px;margin-bottom:1.2rem;">
                     <svg width="16" height="16" fill="none" stroke="#16a34a" stroke-width="2" viewBox="0 0 24 24" style="flex-shrink:0;">
@@ -224,6 +245,7 @@
                 </div>
             @endif
 
+            {{-- Error --}}
             @if(session('error'))
                 <div style="display:flex;align-items:center;gap:10px;background:#fef2f2;border:1px solid #fecaca;border-radius:12px;padding:12px 16px;margin-bottom:1.2rem;">
                     <svg width="16" height="16" fill="none" stroke="#dc2626" stroke-width="2" viewBox="0 0 24 24" style="flex-shrink:0;">
@@ -233,9 +255,11 @@
                 </div>
             @endif
 
+            {{-- Form --}}
             <form method="POST" action="{{ route('login.post') }}">
                 @csrf
 
+                {{-- Email --}}
                 <div style="margin-bottom:1rem;">
                     <label style="display:block;font-size:0.72rem;font-weight:700;color:#4a6a4a;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:6px;">Email Address</label>
                     <div style="position:relative;">
@@ -252,6 +276,7 @@
                     @enderror
                 </div>
 
+                {{-- Password --}}
                 <div style="margin-bottom:1.6rem;">
                     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
                         <label style="font-size:0.72rem;font-weight:700;color:#4a6a4a;text-transform:uppercase;letter-spacing:0.07em;">Password</label>
@@ -283,6 +308,7 @@
                     @enderror
                 </div>
 
+                {{-- Submit --}}
                 <button type="submit" class="btn-primary">
                     <span style="position:relative;z-index:1;display:flex;align-items:center;justify-content:center;gap:8px;">
                         <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
@@ -293,6 +319,7 @@
                 </button>
             </form>
 
+            {{-- Footer --}}
             <div style="margin-top:2rem;padding-top:1.4rem;border-top:1px solid #f0f4eb;text-align:center;">
                 <div style="display:flex;align-items:center;justify-content:center;gap:6px;margin-bottom:5px;">
                     <svg width="12" height="12" fill="none" stroke="#8fb08f" stroke-width="2" viewBox="0 0 24 24">

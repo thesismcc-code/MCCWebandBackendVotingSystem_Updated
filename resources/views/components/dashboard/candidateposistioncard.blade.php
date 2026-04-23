@@ -1,32 +1,17 @@
-{{--
-    Candidate Position Card Component
-    Props:
-        $position   — string e.g. 'President'
-        $candidates — array of candidate arrays:
-                      [ candidate_id, name, party_list_id, votes, percentage ]
---}}
-
-<div class="bg-white rounded-2xl shadow-lg overflow-hidden">
-
-    {{-- Position Header --}}
-    <div class="grid grid-cols-[1fr_auto_auto] items-center gap-4
-                px-5 py-3 border-b border-gray-200 bg-gray-50">
-        <span class="font-extrabold text-sm text-gray-900 uppercase tracking-wider">
-            {{ $position }}
-        </span>
-        <span class="text-xs font-bold text-gray-500 uppercase tracking-wider w-16 text-center">
-            Votes
-        </span>
-        <span class="text-xs font-bold text-gray-500 uppercase tracking-wider w-40 text-center">
-            Turnout
-        </span>
+<div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+    <div class="flex items-center justify-between px-5 py-3.5 border-b border-gray-100" style="background:#f8faf6;">
+        <div class="flex items-center gap-2">
+            <div class="w-2 h-2 rounded-full" style="background:#2d7a52;"></div>
+            <span class="font-extrabold text-xs text-gray-700 uppercase tracking-widest">{{ $position }}</span>
+        </div>
+        <div class="flex items-center gap-6">
+            <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider w-14 text-center">Votes</span>
+            <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider w-36 text-center">Progress</span>
+        </div>
     </div>
-
-    {{-- Candidate Rows --}}
-    <div class="divide-y divide-gray-100">
+    <div class="divide-y divide-gray-50">
         @foreach($candidates as $candidate)
             @include('components.dashboard.candidaterow', ['candidate' => $candidate])
         @endforeach
     </div>
-
 </div>

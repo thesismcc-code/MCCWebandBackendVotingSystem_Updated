@@ -1,348 +1,401 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Position Setup - Fingerprint Voting System</title>
-
-    <!-- Bootstrap 5 CSS -->
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>Position Setup - MCC Voting System</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #102864;
-            color: white;
-        }
+        * { font-family: ''Plus Jakarta Sans'', sans-serif; }
+        body { background: radial-gradient(ellipse at top left, #0d3520 0%, #0a2e1a 50%, #071f12 100%); min-height: 100vh; }
+        .page-wrapper { padding: 32px 36px; min-height: 100vh; display: flex; flex-direction: column; gap: 28px; }
 
-        /* Custom Colors matching your design */
-        .bg-main-panel {
-            background-color: #0C3189;
-            border: 1px solid rgba(30, 64, 175, 0.3);
-        }
+        .btn-back { width:42px;height:42px;background:rgba(255,255,255,.15);backdrop-filter:blur(10px);color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;text-decoration:none;box-shadow:0 4px 16px rgba(0,0,0,.25),inset 0 1px 0 rgba(255,255,255,.2);transition:all .25s;flex-shrink:0;border:1px solid rgba(255,255,255,.2); }
+        .btn-back:hover { background:rgba(255,255,255,.25);color:white;transform:scale(1.08) translateX(-2px); }
+        .page-title { font-size:28px;font-weight:800;color:white;letter-spacing:-0.03em;margin:0;text-shadow:0 2px 8px rgba(0,0,0,.2); }
 
-        .text-dark-blue {
-            color: #113285;
-        }
+        .main-panel { background:linear-gradient(160deg,#1e6b42 0%,#165233 60%,#123d28 100%);border-radius:28px;padding:32px;flex:1;box-shadow:0 20px 60px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.08);display:flex;flex-direction:column;gap:24px;position:relative;border:1px solid rgba(255,255,255,.07); }
 
-        .btn-back {
-            background-color: white;
-            color: #113285;
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-            transition: transform 0.2s;
-            text-decoration: none;
-        }
+        .stat-card { background:linear-gradient(135deg,#ffffff 0%,#f8fdf9 100%);border-radius:20px;padding:22px 26px;display:flex;align-items:center;gap:18px;box-shadow:0 8px 32px rgba(0,0,0,.15),0 2px 8px rgba(0,0,0,.08);transition:all .25s cubic-bezier(.4,0,.2,1);border:1px solid rgba(26,92,56,.08);position:relative;overflow:hidden; }
+        .stat-card::before { content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#1a5c38,#2d7a52,#4ade80);border-radius:20px 20px 0 0; }
+        .stat-card:hover { transform:translateY(-4px);box-shadow:0 16px 48px rgba(0,0,0,.2),0 4px 16px rgba(26,92,56,.15); }
+        .stat-icon { width:56px;height:56px;border-radius:16px;background:linear-gradient(135deg,#1a5c38 0%,#2d7a52 100%);display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 6px 20px rgba(26,92,56,.4),inset 0 1px 0 rgba(255,255,255,.15); }
+        .stat-number { font-size:36px;font-weight:800;color:#0d1f14;line-height:1;letter-spacing:-0.02em; }
+        .stat-label { font-size:11px;font-weight:700;color:#6b7280;margin-top:4px;text-transform:uppercase;letter-spacing:.08em; }
+        .stat-arrow { width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#f0f9f4,#e8f5ee);display:flex;align-items:center;justify-content:center;color:#1a5c38;transition:all .25s;text-decoration:none;margin-left:auto;box-shadow:0 2px 8px rgba(26,92,56,.15);border:1px solid rgba(26,92,56,.12); }
+        .stat-arrow:hover { background:linear-gradient(135deg,#1a5c38,#2d7a52);color:white;transform:scale(1.12) rotate(5deg);box-shadow:0 6px 20px rgba(26,92,56,.4); }
 
-        .btn-back:hover {
-            transform: scale(1.1);
-            color: #113285;
-        }
+        .table-card { background:white;border-radius:20px;overflow:hidden;flex:1;position:relative;box-shadow:0 8px 32px rgba(0,0,0,.15);border:1px solid rgba(255,255,255,.5); }
 
-        .stat-icon {
-            background-color: #0066FF;
-            width: 56px;
-            height: 56px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-        }
+        /* Search bar */
+        .search-wrap { padding:16px 24px;border-bottom:1px solid #f0f4f1;background:#fafcfb; }
+        .search-input { width:100%;border:1.5px solid #e5e7eb;border-radius:12px;padding:9px 14px 9px 38px;font-size:13px;font-weight:500;outline:none;transition:all .2s;background:#fff; }
+        .search-input:focus { border-color:#1a5c38;box-shadow:0 0 0 3px rgba(26,92,56,.1); }
+        .search-icon { position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#9ab09a;pointer-events:none; }
 
-        /* Table Styling */
-        .table-card {
-            background-color: white;
-            border-radius: 1rem;
-            min-height: 400px;
-            position: relative;
-        }
+        .tbl { width:100%;border-collapse:collapse; }
+        .tbl thead tr { background:linear-gradient(135deg,#1a5c38 0%,#2d7a52 100%); }
+        .tbl thead th { color:rgba(255,255,255,.95);font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.1em;padding:16px 24px;border:none; }
+        .tbl tbody td { padding:18px 24px;color:#374151;font-weight:500;font-size:14px;vertical-align:middle;border-bottom:1px solid #f0f4f1; }
+        .tbl tbody tr { transition:background .15s; }
+        .tbl tbody tr:hover { background:linear-gradient(90deg,#f0f9f4,#f8fdf9); }
+        .tbl tbody tr:last-child td { border-bottom:none; }
+        .pos-name { font-weight:700;color:#111827;font-size:15px; }
 
-        .table thead th {
-            border-bottom: 1px solid #dee2e6;
-            color: #111827;
-            font-weight: 700;
-            padding: 1.5rem 1rem;
-        }
+        .max-vote-badge { background:linear-gradient(135deg,#f0f9f4,#e8f5ee);color:#1a5c38;font-weight:800;font-size:14px;padding:5px 18px;border-radius:24px;border:1.5px solid rgba(26,92,56,.2);display:inline-block;letter-spacing:.02em; }
+        .cand-badge { font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;display:inline-flex;align-items:center;gap:4px; }
+        .cand-badge.has-cands { background:#dcfce7;color:#15803d;border:1px solid rgba(21,128,61,.2); }
+        .cand-badge.no-cands  { background:#fef9c3;color:#92400e;border:1px solid rgba(251,191,36,.3); }
 
-        .table tbody td {
-            padding: 1.25rem 1rem;
-            color: #4b5563;
-            font-weight: 500;
-            vertical-align: middle;
-        }
+        .btn-edit { width:36px;height:36px;background:linear-gradient(135deg,#1a5c38,#2d7a52);color:white;border:none;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;transition:all .2s;box-shadow:0 3px 10px rgba(26,92,56,.35); }
+        .btn-edit:hover { transform:translateY(-2px) scale(1.05);box-shadow:0 6px 18px rgba(26,92,56,.5); }
+        .btn-delete { width:36px;height:36px;background:linear-gradient(135deg,#fff1f1,#fee2e2);color:#dc2626;border:1px solid rgba(220,38,38,.15);border-radius:10px;display:inline-flex;align-items:center;justify-content:center;transition:all .2s;box-shadow:0 3px 10px rgba(220,38,38,.15); }
+        .btn-delete:hover { background:linear-gradient(135deg,#fee2e2,#fecaca);transform:translateY(-2px) scale(1.05);box-shadow:0 6px 18px rgba(220,38,38,.25); }
 
-        /* Action Buttons */
-        .btn-action-blue {
-            width: 36px;
-            height: 36px;
-            background-color: #0066FF;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .btn-action-blue:hover {
-            background-color: #0052cc;
-            color: white;
-        }
+        .fab-btn { position:absolute;bottom:28px;right:28px;width:58px;height:58px;border-radius:50%;background:linear-gradient(135deg,#1a5c38 0%,#2d7a52 100%);color:white;border:none;box-shadow:0 8px 28px rgba(26,92,56,.55),inset 0 1px 0 rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;transition:all .25s cubic-bezier(.4,0,.2,1);z-index:10;cursor:pointer; }
+        .fab-btn:hover { transform:scale(1.12) translateY(-3px);box-shadow:0 16px 40px rgba(26,92,56,.65); }
 
-        .btn-action-red {
-            width: 36px;
-            height: 36px;
-            background-color: #ffb3b3;
-            color: #FF0000;
-            border: none;
-            border-radius: 4px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .btn-action-red:hover {
-            background-color: #ffcccc;
-            color: #cc0000;
-        }
+        .modal-content { border-radius:24px;border:none;box-shadow:0 32px 80px rgba(0,0,0,.25);overflow:hidden; }
+        .modal-header { border-bottom:none;padding:32px 32px 0;background:linear-gradient(135deg,#f8fdf9,#ffffff); }
+        .modal-body { padding:24px 32px; }
+        .modal-footer { border-top:1px solid #f0f4f1;padding:20px 32px 28px;background:#fafcfb; }
+        .modal-title { font-size:22px;font-weight:800;color:#0d1f14;letter-spacing:-0.02em; }
+        .form-label { font-weight:700;color:#374151;font-size:13px;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px; }
+        .form-control,.form-select { border:1.5px solid #e5e7eb;border-radius:12px;padding:11px 16px;font-size:14px;font-weight:500;transition:all .2s;background:#fafafa; }
+        .form-control:focus,.form-select:focus { border-color:#1a5c38;box-shadow:0 0 0 4px rgba(26,92,56,.1);background:white; }
+        .btn-cancel { border:2px solid #ef4444;color:#ef4444;background:white;border-radius:12px;padding:11px 32px;font-weight:700;font-size:14px;transition:all .2s; }
+        .btn-cancel:hover { background:#fef2f2;color:#dc2626;border-color:#dc2626;transform:translateY(-1px); }
+        .btn-save { background:linear-gradient(135deg,#1a5c38 0%,#2d7a52 100%);color:white;border:none;border-radius:12px;padding:11px 32px;font-weight:700;font-size:14px;transition:all .2s;box-shadow:0 4px 16px rgba(26,92,56,.35); }
+        .btn-save:hover { transform:translateY(-2px);box-shadow:0 8px 24px rgba(26,92,56,.5); }
+        .btn-danger-confirm { background:linear-gradient(135deg,#b91c1c,#dc2626);color:white;border:none;border-radius:12px;padding:11px 32px;font-weight:700;font-size:14px;transition:all .2s;box-shadow:0 4px 16px rgba(185,28,28,.35); }
+        .btn-danger-confirm:hover { transform:translateY(-2px);box-shadow:0 8px 24px rgba(185,28,28,.5); }
 
-        /* Floating Action Button */
-        .fab-btn {
-            position: absolute;
-            bottom: 24px;
-            right: 24px;
-            width: 56px;
-            height: 56px;
-            background-color: #0066FF;
-            color: white;
-            border-radius: 50%;
-            border: none;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: transform 0.2s;
-        }
-        .fab-btn:hover {
-            transform: scale(1.1);
-            background-color: #0052cc;
-            color: white;
-        }
+        .alert { border-radius:14px;border:none;font-weight:600;padding:14px 20px; }
+        .alert-success { background:linear-gradient(135deg,#dcfce7,#bbf7d0);color:#15803d;box-shadow:0 4px 16px rgba(21,128,61,.15); }
+        .alert-danger  { background:linear-gradient(135deg,#fee2e2,#fecaca);color:#dc2626;box-shadow:0 4px 16px rgba(220,38,38,.15); }
 
-        /* Modal Customization to match image */
-        .modal-content {
-            border-radius: 1rem;
-            border: none;
-        }
-        .modal-header {
-            border-bottom: none;
-            padding-bottom: 0;
-        }
-        .modal-footer {
-            border-top: none;
-            justify-content: center;
-            gap: 10px;
-        }
-        .form-label {
-            color: #333;
-            font-weight: 500;
-        }
+        .empty-state { padding:72px 20px;text-align:center; }
+        .empty-state svg { opacity:.3;margin-bottom:20px; }
+        .empty-state p { font-weight:700;font-size:16px;color:#6b7280;margin:0; }
+        .empty-state span { font-size:13px;color:#9ca3af;margin-top:6px;display:block; }
+
+        /* No-candidates warning row */
+        .warn-row td { background:#fffbeb !important; }
     </style>
 </head>
+<body>
+<div class="page-wrapper">
 
-<body class="p-3 p-md-4 min-vh-100 d-flex flex-column">
+{{-- Alerts --}}
+@if(session('success'))
+<div class="alert alert-success alert-dismissible fade show" role="alert">
+    <strong>Success!</strong> {{ session('success') }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+@endif
+@if(session('error'))
+<div class="alert alert-danger alert-dismissible fade show" role="alert">
+    <strong>Error!</strong> {{ session('error') }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+@endif
+@if($errors->any())
+<div class="alert alert-danger alert-dismissible fade show" role="alert">
+    @foreach($errors->all() as $e)<div>{{ $e }}</div>@endforeach
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+@endif
 
-    <!-- HEADER SECTION -->
-    <div class="container-xl mb-4 px-0">
-        <div class="d-flex align-items-center gap-3">
-            <!-- Back Button -->
-            <a href="{{ route('view.election-control') }}" class="btn-back shadow-sm">
-                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
-            </a>
-            <h1 class="h3 fw-bold m-0 tracking-tight">Position Setup</h1>
+{{-- Header --}}
+<div class="d-flex align-items-center justify-content-between">
+    <div class="d-flex align-items-center gap-3">
+        <a href="{{ route('view.election-control') }}" class="btn-back">
+            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+        </a>
+        <h1 class="page-title">Position Setup</h1>
+    </div>
+    {{-- Positions without candidates warning --}}
+    @php
+        $emptyPositions = collect($positions)->filter(fn($p) => ($candidatesPerPosition[$p['name']] ?? 0) === 0)->count();
+    @endphp
+    @if($emptyPositions > 0)
+    <div style="background:rgba(251,191,36,.15);border:1px solid rgba(251,191,36,.3);border-radius:12px;padding:8px 16px;display:flex;align-items:center;gap:8px;">
+        <svg width="16" height="16" fill="none" stroke="#fbbf24" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+        <span style="font-size:12px;font-weight:700;color:#fbbf24;">{{ $emptyPositions }} position{{ $emptyPositions > 1 ? 's' : '' }} without candidates</span>
+    </div>
+    @endif
+</div>
+
+{{-- Main Panel --}}
+<div class="main-panel">
+
+    {{-- Stat Cards --}}
+    <div class="row g-3">
+        <div class="col-md-6">
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <svg width="26" height="26" fill="none" stroke="white" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                </div>
+                <div>
+                    <div class="stat-number">{{ $totalPositions }}</div>
+                    <div class="stat-label">Total Positions</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <svg width="26" height="26" fill="none" stroke="white" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                </div>
+                <div>
+                    <div class="stat-number">{{ $totalCandidates }}</div>
+                    <div class="stat-label">Total Candidates</div>
+                </div>
+                <a href="{{ route('view.election-control-candidate-list') }}" class="stat-arrow">
+                    <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
+                </a>
+            </div>
         </div>
     </div>
 
-    <!-- MAIN CONTAINER -->
-    <div class="container-xl bg-main-panel rounded-4 p-4 p-md-5 shadow-lg flex-fill d-flex flex-column gap-4 position-relative">
+    {{-- Table --}}
+    <div class="table-card">
 
-        <!-- TOP STATS CARDS -->
-        <div class="row g-4 justify-content-center">
-
-            <!-- Total Positions Card -->
-            <div class="col-md-6">
-                <div class="card border-0 rounded-4 shadow h-100">
-                    <div class="card-body d-flex align-items-center gap-3 p-3">
-                        <div class="stat-icon flex-shrink-0">
-                            <svg width="28" height="28" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
-                        </div>
-                        <div>
-                            <h2 class="h2 fw-bold text-dark m-0 lh-1">3</h2>
-                            <p class="small text-secondary fw-medium m-0 mt-1">Total Positions</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Total Candidates Card -->
-            <div class="col-md-6">
-                <div class="card border-0 rounded-4 shadow h-100">
-                    <div class="card-body d-flex align-items-center justify-content-between p-3">
-                        <div class="d-flex align-items-center gap-3">
-                            <div class="stat-icon flex-shrink-0">
-                                <svg width="28" height="28" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
-                            </div>
-                            <div>
-                                <h2 class="h2 fw-bold text-dark m-0 lh-1">19</h2>
-                                <p class="small text-secondary fw-medium m-0 mt-1">Total Candidates</p>
-                            </div>
-                        </div>
-                        <a href="{{route('view.election-control-candidate-list')}}" class="text-dark-blue link-underline link-underline-opacity-0">
-                            <svg width="32" height="32" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 1.414L10.586 9H7a1 1 0 100 2h3.586l-1.293 1.293a1 1 0 101.414 1.414l3-3a1 1 0 000-1.414z" clip-rule="evenodd"></path></svg>
-                        </a>
-                    </div>
-                </div>
+        {{-- Search --}}
+        <div class="search-wrap">
+            <div class="position-relative">
+                <svg class="search-icon" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0"/></svg>
+                <input type="text" class="search-input" id="posSearch" placeholder="Search positions..." oninput="filterPositions(this.value)">
             </div>
         </div>
 
-        <!-- POSITIONS TABLE CARD -->
-        <div class="table-card shadow-lg w-100 flex-fill overflow-hidden">
-            <div class="table-responsive">
-                <table class="table table-hover mb-0">
-                    <thead class="bg-light">
-                        <tr>
-                            <th scope="col" class="ps-4 ps-md-5">Position Name</th>
-                            <th scope="col" class="text-center">Max Vote</th>
-                            <th scope="col" class="ps-5">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <!-- Row 1 -->
-                        <tr>
-                            <td class="ps-4 ps-md-5">President</td>
-                            <td class="text-center">1</td>
-                            <td class="ps-5">
-                                <div class="d-flex gap-2">
-                                    <button class="btn-action-blue" title="Edit">
-                                        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
-                                    </button>
-                                    <button class="btn-action-red" title="Delete">
-                                        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-
-                        <!-- Row 2 -->
-                        <tr>
-                            <td class="ps-4 ps-md-5">Vice President</td>
-                            <td class="text-center">1</td>
-                            <td class="ps-5">
-                                <div class="d-flex gap-2">
-                                    <button class="btn-action-blue">
-                                        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
-                                    </button>
-                                    <button class="btn-action-red">
-                                        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-
-                        <!-- Row 3 -->
-                        <tr>
-                            <td class="ps-4 ps-md-5">Senators</td>
-                            <td class="text-center">9</td>
-                            <td class="ps-5">
-                                <div class="d-flex gap-2">
-                                    <button class="btn-action-blue">
-                                        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
-                                    </button>
-                                    <button class="btn-action-red">
-                                        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <!-- Floating Action Button (Triggers Modal) -->
-            <button type="button" class="fab-btn" data-bs-toggle="modal" data-bs-target="#addPositionModal">
-                <svg width="32" height="32" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path></svg>
-            </button>
+        <div class="table-responsive">
+            <table class="tbl" id="posTable">
+                <thead>
+                    <tr>
+                        <th style="padding-left:32px;">Position Name</th>
+                        <th class="text-center">Max Votes</th>
+                        <th class="text-center">Candidates</th>
+                        <th style="padding-left:32px;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="posTableBody">
+                    @forelse($positions as $position)
+                    @php $candCount = $candidatesPerPosition[$position['name']] ?? 0; @endphp
+                    <tr class="pos-row {{ $candCount === 0 ? 'warn-row' : '' }}" data-name="{{ strtolower($position['name']) }}">
+                        <td style="padding-left:32px;">
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="pos-name">{{ $position['name'] }}</span>
+                                @if($candCount === 0)
+                                <span style="font-size:10px;font-weight:700;color:#d97706;background:#fef9c3;padding:2px 8px;border-radius:20px;border:1px solid rgba(217,119,6,.2);">No candidates</span>
+                                @endif
+                            </div>
+                        </td>
+                        <td class="text-center">
+                            <span class="max-vote-badge">{{ $position['max_vote'] }}</span>
+                        </td>
+                        <td class="text-center">
+                            <span class="cand-badge {{ $candCount > 0 ? 'has-cands' : 'no-cands' }}">
+                                @if($candCount > 0)
+                                <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                                @else
+                                <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01"/></svg>
+                                @endif
+                                {{ $candCount }} candidate{{ $candCount !== 1 ? 's' : '' }}
+                            </span>
+                        </td>
+                        <td style="padding-left:32px;">
+                            <div class="d-flex gap-2">
+                                <button class="btn-edit" title="Edit"
+                                    data-position-id="{{ $position['id'] }}"
+                                    data-position-name="{{ $position['name'] }}"
+                                    data-max-vote="{{ $position['max_vote'] }}"
+                                    onclick="openEdit(this)">
+                                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                                </button>
+                                <button class="btn-delete" title="Delete"
+                                    data-position-id="{{ $position['id'] }}"
+                                    data-position-name="{{ $position['name'] }}"
+                                    data-cand-count="{{ $candCount }}"
+                                    onclick="openDelete(this)">
+                                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    @empty
+                    <tr>
+                        <td colspan="4">
+                            <div class="empty-state">
+                                <svg width="56" height="56" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/></svg>
+                                <p>No positions found</p>
+                                <span>Click the + button below to add your first position</span>
+                            </div>
+                        </td>
+                    </tr>
+                    @endforelse
+                </tbody>
+            </table>
         </div>
+
+        {{-- No search results --}}
+        <div id="noResults" style="display:none;" class="empty-state">
+            <svg width="48" height="48" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0"/></svg>
+            <p>No positions match your search</p>
+        </div>
+
+        {{-- FAB --}}
+        <button type="button" class="fab-btn" data-bs-toggle="modal" data-bs-target="#addModal">
+            <svg width="28" height="28" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
+        </button>
     </div>
+</div>
 
-    <!-- ADD POSITION MODAL -->
-<!-- Make sure this is placed before the closing </body> tag -->
-<div class="modal fade" id="addPositionModal" tabindex="-1" aria-labelledby="addPositionModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg" style="max-width: 600px;">
-        <div class="modal-content shadow-lg border-0" style="border-radius: 24px; padding: 20px;">
-
-            <!-- Modal Header -->
-            <div class="modal-header border-0 pb-0 ps-4 pt-4">
-                <h4 class="modal-title fw-bold text-black" id="addPositionModalLabel" style="font-size: 1.75rem;">Add Position</h4>
+{{-- ADD MODAL --}}
+<div class="modal fade" id="addModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:520px;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add Position</h5>
             </div>
-
-            <!-- Modal Body -->
-            <div class="modal-body p-4 pt-5">
-                <form id="addPositionForm">
-                    <!-- Position Name Field -->
-                    <div class="row mb-4 align-items-center">
-                        <label for="positionName" class="col-sm-4 col-form-label text-dark fs-5" style="font-weight: 400;">Position Name:</label>
-                        <div class="col-sm-8">
-                            <input type="text" class="form-control form-control-lg rounded-1 border-secondary-subtle" id="positionName" placeholder="Position Name" style="font-size: 0.95rem; padding: 10px 15px;">
-                        </div>
+            <div class="modal-body">
+                <form id="addForm" action="{{ route('position.add') }}" method="POST">
+                    @csrf
+                    <div class="mb-4">
+                        <label class="form-label">Position Name</label>
+                        <input type="text" name="position_name" class="form-control" placeholder="e.g. President" required>
                     </div>
-
-                    <!-- Max Votes Field -->
-                    <div class="row mb-4 align-items-center">
-                        <label for="maxVotes" class="col-sm-4 col-form-label text-dark fs-5" style="font-weight: 400;">Max Votes:</label>
-                        <div class="col-sm-8">
-                            <select class="form-select form-select-lg rounded-1 border-secondary-subtle text-secondary" id="maxVotes" style="font-size: 0.95rem; padding: 10px 15px;">
-                                <option selected disabled>Select</option>
-                                <option value="1">1</option>
-                                <option value="2">2</option>
-                                <option value="3">3</option>
-                                <option value="4">4</option>
-                                <option value="5">5</option>
-                            </select>
-                        </div>
+                    <div class="mb-2">
+                        <label class="form-label">Max Votes</label>
+                        <select name="max_vote" class="form-select" required>
+                            <option value="" disabled selected>Select max votes</option>
+                            @for($i = 1; $i <= 15; $i++)
+                            <option value="{{ $i }}">{{ $i }}</option>
+                            @endfor
+                        </select>
                     </div>
                 </form>
             </div>
-
-            <!-- Modal Footer -->
-            <div class="modal-footer border-0 justify-content-end pe-4 pb-4 gap-3">
-                <button type="button" class="btn px-4 py-2" data-bs-dismiss="modal"
-                    style="border: 1px solid #FF3B3B; color: #FF3B3B; background: white; width: 120px; font-weight: 500;">
-                    Cancel
-                </button>
-                <button type="submit" form="addPositionForm" class="btn px-4 py-2 text-white"
-                    style="background-color: #00CC00; border: none; width: 120px; font-weight: 500;">
-                    Save
-                </button>
+            <div class="modal-footer justify-content-end gap-2">
+                <button type="button" class="btn-cancel" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" form="addForm" class="btn-save">Save Position</button>
             </div>
-
         </div>
     </div>
 </div>
 
-    <!-- Bootstrap Bundle JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+{{-- EDIT MODAL --}}
+<div class="modal fade" id="editModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:520px;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Edit Position</h5>
+            </div>
+            <div class="modal-body">
+                <form id="editForm" action="{{ route('position.update') }}" method="POST">
+                    @csrf
+                    <input type="hidden" name="position_id" id="editPositionId">
+                    <div class="mb-4">
+                        <label class="form-label">Position Name</label>
+                        <input type="text" name="position_name" class="form-control" id="editPositionName" placeholder="Position Name" required>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label">Max Votes</label>
+                        <select name="max_vote" class="form-select" id="editMaxVotes" required>
+                            <option value="" disabled>Select max votes</option>
+                            @for($i = 1; $i <= 15; $i++)
+                            <option value="{{ $i }}">{{ $i }}</option>
+                            @endfor
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer justify-content-end gap-2">
+                <button type="button" class="btn-cancel" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" form="editForm" class="btn-save">Update Position</button>
+            </div>
+        </div>
+    </div>
+</div>
 
-    <!-- Script to handle modal open if needed automatically, or for handling form submission -->
-    <script>
-        // Optional: If you want to preview the modal immediately like the screenshot
-        // var myModal = new bootstrap.Modal(document.getElementById('addPositionModal'));
-        // myModal.show();
-    </script>
+{{-- DELETE CONFIRM MODAL --}}
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:440px;">
+        <div class="modal-content">
+            <div class="modal-body text-center" style="padding:40px 32px 24px;">
+                <div style="width:64px;height:64px;background:linear-gradient(135deg,#fee2e2,#fecaca);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;">
+                    <svg width="30" height="30" fill="none" stroke="#dc2626" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                </div>
+                <h5 style="font-size:20px;font-weight:800;color:#111827;margin-bottom:8px;">Delete Position?</h5>
+                <p style="font-size:14px;color:#6b7280;font-weight:500;margin-bottom:4px;">
+                    You are about to delete <strong id="deletePositionName" style="color:#1a3a1a;"></strong>.
+                </p>
+                <p id="deleteCandWarning" style="font-size:12px;color:#dc2626;font-weight:600;display:none;margin-top:8px;">
+                    ⚠️ This position has candidates — deleting it will not remove them automatically.
+                </p>
+                <p style="font-size:12px;color:#9ca3af;margin-top:8px;">This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer justify-content-center gap-3" style="border-top:1px solid #f0f4f1;padding:16px 32px 28px;background:#fafcfb;">
+                <button type="button" class="btn-cancel" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn-danger-confirm" id="confirmDeleteBtn">Delete Position</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // ── Search filter ─────────────────────────────────────────
+    function filterPositions(q) {
+        const rows = document.querySelectorAll('.pos-row');
+        const noRes = document.getElementById('noResults');
+        let visible = 0;
+        rows.forEach(row => {
+            const name = row.dataset.name || '';
+            const show = name.includes(q.toLowerCase());
+            row.style.display = show ? '' : 'none';
+            if (show) visible++;
+        });
+        noRes.style.display = visible === 0 && q ? 'block' : 'none';
+    }
+
+    // ── Edit modal ────────────────────────────────────────────
+    function openEdit(btn) {
+        document.getElementById('editPositionId').value   = btn.dataset.positionId;
+        document.getElementById('editPositionName').value = btn.dataset.positionName;
+        document.getElementById('editMaxVotes').value     = btn.dataset.maxVote;
+        new bootstrap.Modal(document.getElementById('editModal')).show();
+    }
+
+    // ── Delete modal ──────────────────────────────────────────
+    let deleteTargetId = null;
+    function openDelete(btn) {
+        deleteTargetId = btn.dataset.positionId;
+        document.getElementById('deletePositionName').textContent = btn.dataset.positionName;
+        const warn = document.getElementById('deleteCandWarning');
+        warn.style.display = parseInt(btn.dataset.candCount) > 0 ? 'block' : 'none';
+        new bootstrap.Modal(document.getElementById('deleteModal')).show();
+    }
+    document.getElementById('confirmDeleteBtn').addEventListener('click', function() {
+        if (!deleteTargetId) return;
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = `/election-control/position/delete/${deleteTargetId}`;
+        const csrf = document.createElement('input'); csrf.type='hidden'; csrf.name='_token';
+        csrf.value = document.querySelector('meta[name="csrf-token"]').content;
+        const method = document.createElement('input'); method.type='hidden'; method.name='_method'; method.value='DELETE';
+        form.appendChild(csrf); form.appendChild(method);
+        document.body.appendChild(form); form.submit();
+    });
+
+    // Auto-dismiss alerts
+    setTimeout(() => {
+        document.querySelectorAll('.alert').forEach(a => {
+            try { new bootstrap.Alert(a).close(); } catch(e) {}
+        });
+    }, 5000);
+</script>
 </body>
 </html>

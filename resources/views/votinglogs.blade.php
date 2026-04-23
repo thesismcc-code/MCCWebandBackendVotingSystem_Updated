@@ -1,220 +1,96 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Voting Logs - Fingerprint Voting System</title>
+﻿@extends('components.admin-layout')
+@section('title', 'Voting Logs — MCC Voting System')
+@section('page-title', 'Voting Logs')
+@section('page-sub', 'Track every vote cast in the election')
 
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Alpine.js -->
-    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    <!-- Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+@section('content')
 
-    <style>
-        body { font-family: 'Inter', sans-serif; background-color: #102864; }
-        .bg-main-panel { background-color: #0C3189; }
-        .bg-input-dark { background-color: #113285; }
-        [x-cloak] { display: none !important; }
-
-        /* Custom Scrollbar for table if needed */
-        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #888; border-radius: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #555; }
-    </style>
-</head>
-
-<body class="p-4 md:p-6 min-h-screen text-white flex flex-col font-sans relative">
-
-    <!-- HEADER SECTION -->
-    <div class="max-w-7xl mx-auto w-full mb-5 flex items-center justify-between px-2">
-        <div class="flex items-center gap-4">
-            <!-- Back Button -->
-            <a href="{{ route('view.quick-access') }}" class="bg-white text-[#113285] rounded-full w-10 h-10 flex items-center justify-center hover:scale-110 transition-transform shadow-md">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
-            </a>
-            <div>
-                <h1 class="text-2xl font-bold tracking-tight text-white leading-tight">Voting Logs</h1>
-                <p class="text-blue-200 text-[11px] font-medium">Track every voting</p>
-            </div>
+{{-- Action Cards --}}
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+    <a href="{{ route('view.security-logs') }}"
+       class="flex items-center gap-4 bg-white border border-gray-100 rounded-2xl shadow-sm px-5 py-4 hover:shadow-md hover:-translate-y-0.5 transition-all group">
+        <div class="w-11 h-11 rounded-xl flex items-center justify-center shrink-0" style="background:linear-gradient(135deg,#1a5c38,#2d7a52);">
+            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
         </div>
+        <div class="flex-1 min-w-0">
+            <p class="text-sm font-bold text-gray-800 group-hover:text-[#1a5c38] transition-colors">Security Logs</p>
+            <p class="text-xs text-gray-400 mt-0.5">Monitor suspicious activity</p>
+        </div>
+        <svg class="w-4 h-4 text-gray-300 group-hover:text-[#2d7a52] group-hover:translate-x-0.5 transition-all" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+    </a>
+    <a href="{{ route('voting-logs.export-pdf') }}" target="_blank"
+       class="flex items-center gap-4 bg-white border border-gray-100 rounded-2xl shadow-sm px-5 py-4 hover:shadow-md hover:-translate-y-0.5 transition-all group">
+        <div class="w-11 h-11 rounded-xl flex items-center justify-center shrink-0" style="background:linear-gradient(135deg,#4CAF7D,#2d7a52);">
+            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+        </div>
+        <div class="flex-1 min-w-0">
+            <p class="text-sm font-bold text-gray-800 group-hover:text-[#1a5c38] transition-colors">Export PDF</p>
+            <p class="text-xs text-gray-400 mt-0.5">Download voting records</p>
+        </div>
+        <svg class="w-4 h-4 text-gray-300 group-hover:text-[#2d7a52] group-hover:translate-x-0.5 transition-all" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+    </a>
+</div>
+
+{{-- Filters --}}
+<form method="GET" action="{{ route('view.voting-logs') }}" class="flex flex-wrap gap-3 mb-5">
+    <div class="relative flex-1 min-w-56">
+        <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+        <input type="text" name="search" value="{{ request('search') }}" placeholder="Search by Student ID or Name"
+               class="w-full pl-9 pr-4 py-2.5 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-green-500 text-gray-700 placeholder-gray-400">
     </div>
+    <select name="course" onchange="this.form.submit()" class="px-4 py-2.5 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-green-500 text-gray-600 min-w-40">
+        <option value="">All Courses</option>
+        <option value="Computer Science" {{ request('course') === 'Computer Science' ? 'selected' : '' }}>Computer Science</option>
+        <option value="Information Technology" {{ request('course') === 'Information Technology' ? 'selected' : '' }}>Information Technology</option>
+        <option value="Business Administration" {{ request('course') === 'Business Administration' ? 'selected' : '' }}>Business Administration</option>
+    </select>
+    <select name="year_level" onchange="this.form.submit()" class="px-4 py-2.5 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-green-500 text-gray-600 min-w-36">
+        <option value="">Year Level</option>
+        <option value="1st Year" {{ request('year_level') === '1st Year' ? 'selected' : '' }}>1st Year</option>
+        <option value="2nd Year" {{ request('year_level') === '2nd Year' ? 'selected' : '' }}>2nd Year</option>
+        <option value="3rd Year" {{ request('year_level') === '3rd Year' ? 'selected' : '' }}>3rd Year</option>
+        <option value="4th Year" {{ request('year_level') === '4th Year' ? 'selected' : '' }}>4th Year</option>
+    </select>
+    <button type="submit" class="px-5 py-2.5 rounded-xl text-sm font-bold text-white shadow-sm hover:opacity-90 transition-all" style="background:linear-gradient(135deg,#2d7a52,#1a5c38);">Search</button>
+</form>
 
-    <!-- MAIN CONTAINER -->
-    <div class="max-w-7xl mx-auto w-full bg-main-panel rounded-3xl p-6 relative shadow-2xl flex-1 flex flex-col">
+{{-- Table --}}
+<div class="rounded-2xl border border-gray-100 overflow-hidden shadow-sm">
+    <table class="w-full text-sm">
+        <thead>
+            <tr style="background:#1a5c38;">
+                <th class="px-5 py-3.5 text-left text-[11px] font-bold text-white uppercase tracking-widest">Student ID</th>
+                <th class="px-5 py-3.5 text-left text-[11px] font-bold text-white uppercase tracking-widest">Name</th>
+                <th class="px-5 py-3.5 text-left text-[11px] font-bold text-white uppercase tracking-widest">Course</th>
+                <th class="px-5 py-3.5 text-left text-[11px] font-bold text-white uppercase tracking-widest">Year Level</th>
+                <th class="px-5 py-3.5 text-left text-[11px] font-bold text-white uppercase tracking-widest">Date &amp; Time</th>
+                <th class="px-5 py-3.5 text-center text-[11px] font-bold text-white uppercase tracking-widest">Status</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100 bg-white">
+            @forelse($logs as $log)
+            <tr class="hover:bg-green-50/30 transition-colors">
+                <td class="px-5 py-3.5 font-bold text-[13px]" style="color:#1a5c38;">{{ $log['student_id'] }}</td>
+                <td class="px-5 py-3.5 font-semibold text-gray-800 text-[13px]">{{ $log['name'] }}</td>
+                <td class="px-5 py-3.5 text-gray-500 text-[13px]">{{ $log['course'] ?? '—' }}</td>
+                <td class="px-5 py-3.5 text-gray-500 text-[13px]">{{ $log['year_level'] }}</td>
+                <td class="px-5 py-3.5 text-gray-400 text-[13px]">{{ $log['voted_at'] ? \Carbon\Carbon::parse($log['voted_at'])->format('M d, Y g:iA') : '—' }}</td>
+                <td class="px-5 py-3.5 text-center">
+                    <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold bg-green-100 text-green-700">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg>
+                        Voted
+                    </span>
+                </td>
+            </tr>
+            @empty
+            <tr><td colspan="6" class="px-5 py-14 text-center"><p class="text-sm font-medium text-gray-300">No voting records found.</p></td></tr>
+            @endforelse
+        </tbody>
+    </table>
+</div>
 
-        <!-- TOP CARDS (Security & Export) -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-            <!-- Security Logs Card -->
-            <div class="bg-white rounded-xl p-4 flex items-center justify-between shadow-lg">
-                <div class="flex items-center gap-4">
-                    <div class="bg-[#0055ff] w-12 h-12 rounded-xl flex items-center justify-center text-white">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.956 11.956 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
-                    </div>
-                    <div>
-                        <h3 class="text-gray-900 font-bold text-lg">Security Logs</h3>
-                        <p class="text-gray-500 text-xs leading-tight">Monitor suspicious and failed authentication<br>attempts</p>
-                    </div>
-                </div>
-                <a href="#" class="text-[#102864] hover:scale-110 transition-transform">
-                    <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 1.414L10.586 9H7a1 1 0 100 2h3.586l-1.293 1.293a1 1 0 101.414 1.414l3-3a1 1 0 000-1.414z" clip-rule="evenodd"></path></svg>
-                </a>
-            </div>
+@if($logs instanceof \Illuminate\Pagination\LengthAwarePaginator && $logs->hasPages())
+<div class="flex justify-center mt-5">{{ $logs->links() }}</div>
+@endif
 
-            <!-- Export PDF Card -->
-            <div class="bg-white rounded-xl p-4 flex items-center gap-4 shadow-lg cursor-pointer hover:bg-gray-50 transition-colors">
-                <div class="bg-[#00e626] w-12 h-12 rounded-xl flex items-center justify-center text-white">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                </div>
-                <div>
-                    <h3 class="text-gray-900 font-bold text-lg">Export to PDF</h3>
-                </div>
-            </div>
-        </div>
-
-        <!-- FILTERS ROW -->
-        <div class="grid grid-cols-1 md:grid-cols-12 gap-4 mb-6">
-            <!-- Search -->
-            <div class="md:col-span-5 relative">
-                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <svg class="h-5 w-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                </div>
-                <input type="text"
-                    class="bg-input-dark w-full border border-blue-400/50 text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block pl-10 p-3 placeholder-blue-200/70"
-                    placeholder="Search by Student ID or Name">
-            </div>
-
-            <!-- Course Filter -->
-            <div class="md:col-span-4 relative">
-                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <svg class="h-5 w-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 14l9-5-9-5-9 5 9 5z"></path><path d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"></path></svg>
-                </div>
-                <select class="bg-input-dark w-full border border-blue-400/50 text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block pl-10 p-3 appearance-none cursor-pointer">
-                    <option>All Courses</option>
-                    <option>Computer Science</option>
-                    <option>Information Technology</option>
-                    <option>Business Administration</option>
-                </select>
-                <div class="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
-                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                </div>
-            </div>
-
-            <!-- Year Level Filter -->
-            <div class="md:col-span-3 relative">
-                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <svg class="h-5 w-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                </div>
-                <select class="bg-input-dark w-full border border-blue-400/50 text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block pl-10 p-3 appearance-none cursor-pointer">
-                    <option>Year Level</option>
-                    <option>1st Year</option>
-                    <option>2nd Year</option>
-                    <option>3rd Year</option>
-                    <option>4th Year</option>
-                </select>
-                <div class="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
-                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                </div>
-            </div>
-        </div>
-
-        <!-- TABLE SECTION -->
-        <div class="bg-white rounded-2xl overflow-hidden shadow-xl flex-1">
-            <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse">
-                    <thead>
-                        <tr class="border-b border-gray-200">
-                            <th class="p-4 text-sm font-bold text-gray-900">Student ID</th>
-                            <th class="p-4 text-sm font-bold text-gray-900">Name</th>
-                            <th class="p-4 text-sm font-bold text-gray-900">Course</th>
-                            <th class="p-4 text-sm font-bold text-gray-900">Year Level</th>
-                            <th class="p-4 text-sm font-bold text-gray-900">Date & Time</th>
-                            <th class="p-4 text-sm font-bold text-gray-900 text-center">Status</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-gray-100">
-                        <!-- Example Row 1 -->
-                        <tr class="hover:bg-gray-50 transition-colors">
-                            <td class="p-4 text-sm text-gray-700 font-medium">CS-2025-001</td>
-                            <td class="p-4 text-sm text-gray-700">Jose Perolino</td>
-                            <td class="p-4 text-sm text-gray-700">Computer Science</td>
-                            <td class="p-4 text-sm text-gray-700">4th Year</td>
-                            <td class="p-4 text-sm text-gray-700">12-12-2025 10:43AM</td>
-                            <td class="p-4 text-center">
-                                <span class="bg-green-100 text-green-700 text-xs font-bold px-3 py-1 rounded-full">Voted</span>
-                            </td>
-                        </tr>
-                        <!-- Example Row 2 -->
-                        <tr class="hover:bg-gray-50 transition-colors">
-                            <td class="p-4 text-sm text-gray-700 font-medium">IT-2025-035</td>
-                            <td class="p-4 text-sm text-gray-700">Myles Macrohon</td>
-                            <td class="p-4 text-sm text-gray-700">Information Technology</td>
-                            <td class="p-4 text-sm text-gray-700">2nd Year</td>
-                            <td class="p-4 text-sm text-gray-700">13-12-2025 1:30PM</td>
-                            <td class="p-4 text-center">
-                                <span class="bg-green-100 text-green-700 text-xs font-bold px-3 py-1 rounded-full">Voted</span>
-                            </td>
-                        </tr>
-                        <!-- Example Row 3 -->
-                        <tr class="hover:bg-gray-50 transition-colors">
-                            <td class="p-4 text-sm text-gray-700 font-medium">BA-2025-141</td>
-                            <td class="p-4 text-sm text-gray-700">Honey Malang</td>
-                            <td class="p-4 text-sm text-gray-700">Business Administration</td>
-                            <td class="p-4 text-sm text-gray-700">3rd Year</td>
-                            <td class="p-4 text-sm text-gray-700">14-12-2025 8:41AM</td>
-                            <td class="p-4 text-center">
-                                <span class="bg-green-100 text-green-700 text-xs font-bold px-3 py-1 rounded-full">Voted</span>
-                            </td>
-                        </tr>
-                         <!-- Example Row 4 -->
-                         <tr class="hover:bg-gray-50 transition-colors">
-                            <td class="p-4 text-sm text-gray-700 font-medium">CS-2025-225</td>
-                            <td class="p-4 text-sm text-gray-700">Jahaira Ampaso</td>
-                            <td class="p-4 text-sm text-gray-700">Business Administration</td>
-                            <td class="p-4 text-sm text-gray-700">1st Year</td>
-                            <td class="p-4 text-sm text-gray-700">14-12-2025 10:43AM</td>
-                            <td class="p-4 text-center">
-                                <span class="bg-green-100 text-green-700 text-xs font-bold px-3 py-1 rounded-full">Voted</span>
-                            </td>
-                        </tr>
-                        <!-- Example Row 5 -->
-                        <tr class="hover:bg-gray-50 transition-colors">
-                            <td class="p-4 text-sm text-gray-700 font-medium">IT-2025-005</td>
-                            <td class="p-4 text-sm text-gray-700">James Cortes</td>
-                            <td class="p-4 text-sm text-gray-700">Information Technology</td>
-                            <td class="p-4 text-sm text-gray-700">1st Year</td>
-                            <td class="p-4 text-sm text-gray-700">14-12-2025 1:30PM</td>
-                            <td class="p-4 text-center">
-                                <span class="bg-green-100 text-green-700 text-xs font-bold px-3 py-1 rounded-full">Voted</span>
-                            </td>
-                        </tr>
-                        <!-- Example Row 6 -->
-                        <tr class="hover:bg-gray-50 transition-colors">
-                            <td class="p-4 text-sm text-gray-700 font-medium">BA-2025-110</td>
-                            <td class="p-4 text-sm text-gray-700">Carl Cobarde</td>
-                            <td class="p-4 text-sm text-gray-700">Computer Science</td>
-                            <td class="p-4 text-sm text-gray-700">3rd Year</td>
-                            <td class="p-4 text-sm text-gray-700">12-12-2025 10:43AM</td>
-                            <td class="p-4 text-center">
-                                <span class="bg-green-100 text-green-700 text-xs font-bold px-3 py-1 rounded-full">Voted</span>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- PAGINATION -->
-        <div class="mt-4 flex justify-center items-center gap-2">
-            <button class="w-8 h-8 rounded bg-white text-[#0C3189] font-bold text-sm shadow hover:bg-gray-100">1</button>
-            <button class="w-8 h-8 rounded border border-white/30 text-white font-medium text-sm hover:bg-white/10">2</button>
-            <button class="w-8 h-8 rounded border border-white/30 text-white flex items-center justify-center hover:bg-white/10">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
-            </button>
-        </div>
-
-    </div>
-</body>
-</html>
+@endsection

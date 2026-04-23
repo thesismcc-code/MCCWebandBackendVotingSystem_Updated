@@ -1,257 +1,211 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Election Control - Fingerprint Voting System</title>
+@extends('components.admin-layout')
+@section('title', 'Election Control — MCC Voting System')
+@section('page-title', 'Election Control')
+@section('page-sub', 'Manage the setup of the voting cycle')
 
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Alpine.js -->
-    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    <!-- Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+@section('content')
+<div x-data="{ activeModal: null }">
 
-    <style>
-        body { font-family: 'Inter', sans-serif; background-color: #102864; }
-        .bg-main-panel { background-color: #0C3189; }
-        [x-cloak] { display: none !important; }
+@if(session('success'))
+<div class="mb-4 flex items-center justify-between bg-green-50 border border-green-200 text-green-800 px-5 py-3 rounded-xl text-sm font-semibold" id="flash-success">
+    <span>{{ session('success') }}</span>
+    <button onclick="document.getElementById('flash-success').remove()" class="text-green-500 hover:text-green-700 ml-4">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+    </button>
+</div>
+@endif
+@if(session('error'))
+<div class="mb-4 flex items-center justify-between bg-red-50 border border-red-200 text-red-800 px-5 py-3 rounded-xl text-sm font-semibold" id="flash-error">
+    <span>{{ session('error') }}</span>
+    <button onclick="document.getElementById('flash-error').remove()" class="text-red-400 hover:text-red-600 ml-4">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+    </button>
+</div>
+@endif
+@if($errors->any())
+<div class="mb-4 bg-red-50 border border-red-200 text-red-800 px-5 py-3 rounded-xl text-sm">
+    <p class="font-bold mb-1">Please fix the following errors:</p>
+    <ul class="list-disc list-inside space-y-0.5">@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>
+</div>
+@endif
 
-        /* Helper to style date/time inputs consistent with select arrows */
-        input[type="date"]::-webkit-calendar-picker-indicator,
-        input[type="time"]::-webkit-calendar-picker-indicator {
-            background: transparent;
-            bottom: 0;
-            color: transparent;
-            cursor: pointer;
-            height: auto;
-            left: 0;
-            position: absolute;
-            right: 0;
-            top: 0;
-            width: auto;
-        }
-    </style>
-</head>
-
-<!--
-    STATE MANAGEMENT:
-    activeModal: 'general' | 'schedule' | 'position' | null
--->
-<body x-data="{ activeModal: null }" class="p-4 md:p-6 min-h-screen text-white flex flex-col font-sans relative">
-
-    <!-- HEADER SECTION -->
-    <div class="max-w-7xl mx-auto w-full mb-5 flex items-center justify-between px-2">
+{{-- Action Cards --}}
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+    <div @click="activeModal = 'general'"
+         class="bg-white border border-gray-100 rounded-2xl shadow-sm px-5 py-4 flex items-center justify-between cursor-pointer hover:shadow-md hover:-translate-y-0.5 transition-all group">
         <div class="flex items-center gap-4">
-            <!-- Back Button -->
-            <a href="{{ route('view.quick-access') }}" class="bg-white text-[#113285] rounded-full w-10 h-10 flex items-center justify-center hover:scale-110 transition-transform shadow-md">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
-            </a>
+            <div class="w-11 h-11 rounded-xl flex items-center justify-center shrink-0" style="background:linear-gradient(135deg,#1a5c38,#2d7a52);">
+                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+            </div>
             <div>
-                <h1 class="text-2xl font-bold tracking-tight text-white leading-tight">Election Control</h1>
-                <p class="text-blue-200 text-[11px] font-medium">Manage the setup of the voting cycle.</p>
+                <p class="text-sm font-bold text-gray-800 group-hover:text-[#1a5c38] transition-colors">General Settings</p>
+                <p class="text-xs text-gray-400 mt-0.5">Name, semester, academic year</p>
             </div>
         </div>
+        <svg class="w-4 h-4 text-gray-300 group-hover:text-[#2d7a52] group-hover:translate-x-0.5 transition-all" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
     </div>
 
-    <!-- MAIN CONTAINER -->
-    <div class="max-w-7xl mx-auto w-full bg-main-panel rounded-3xl p-6 md:p-10 relative shadow-2xl flex-1 border border-blue-800/30">
-
-        <!-- CARDS GRID -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-
-            <!-- General Settings Card (Trigger) -->
-            <div @click="activeModal = 'general'" class="bg-white rounded-2xl p-5 flex items-center justify-between shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all group cursor-pointer h-28">
-                <div class="flex items-center gap-4">
-                    <div class="bg-[#0066FF] w-12 h-12 rounded-xl flex items-center justify-center text-white shadow-sm">
-                        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                    </div>
-                    <h3 class="text-[#0f172a] font-bold text-lg">General Settings</h3>
-                </div>
-                <div class="text-[#113285] group-hover:translate-x-1 transition-transform">
-                    <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 1.414L10.586 9H7a1 1 0 100 2h3.586l-1.293 1.293a1 1 0 101.414 1.414l3-3a1 1 0 000-1.414z" clip-rule="evenodd"></path></svg>
-                </div>
+    <div @click="activeModal = 'schedule'"
+         class="bg-white border border-gray-100 rounded-2xl shadow-sm px-5 py-4 flex items-center justify-between cursor-pointer hover:shadow-md hover:-translate-y-0.5 transition-all group">
+        <div class="flex items-center gap-4">
+            <div class="w-11 h-11 rounded-xl flex items-center justify-center shrink-0" style="background:linear-gradient(135deg,#4CAF7D,#2d7a52);">
+                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
             </div>
-
-            <!-- Schedule Settings Card (Trigger) -->
-            <div @click="activeModal = 'schedule'" class="bg-white rounded-2xl p-5 flex items-center justify-between shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all group cursor-pointer h-28">
-                <div class="flex items-center gap-4">
-                    <div class="bg-[#00CC00] w-12 h-12 rounded-xl flex items-center justify-center text-white shadow-sm">
-                        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                    </div>
-                    <h3 class="text-[#0f172a] font-bold text-lg">Schedule Settings</h3>
-                </div>
-                <div class="text-[#113285] group-hover:translate-x-1 transition-transform">
-                    <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 1.414L10.586 9H7a1 1 0 100 2h3.586l-1.293 1.293a1 1 0 101.414 1.414l3-3a1 1 0 000-1.414z" clip-rule="evenodd"></path></svg>
-                </div>
+            <div>
+                <p class="text-sm font-bold text-gray-800 group-hover:text-[#1a5c38] transition-colors">Schedule Settings</p>
+                <p class="text-xs text-gray-400 mt-0.5">Dates, opening &amp; closing times</p>
             </div>
-
-            <!-- Position Setup Card (Trigger) -->
-            <a href="{{route('view.election-control-posistion-setup')}}" class="bg-white rounded-2xl p-5 flex items-center justify-between shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all group cursor-pointer h-28">
-                <div class="flex items-center gap-4">
-                    <div class="bg-[#FCD34D] w-12 h-12 rounded-xl flex items-center justify-center text-white shadow-sm">
-                        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
-                    </div>
-                    <h3 class="text-[#0f172a] font-bold text-lg">Position Setup</h3>
-                </div>
-                <div class="text-[#113285] group-hover:translate-x-1 transition-transform">
-                    <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 1.414L10.586 9H7a1 1 0 100 2h3.586l-1.293 1.293a1 1 0 101.414 1.414l3-3a1 1 0 000-1.414z" clip-rule="evenodd"></path></svg>
-                </div>
-            </a>
-
         </div>
-
+        <svg class="w-4 h-4 text-gray-300 group-hover:text-[#2d7a52] group-hover:translate-x-0.5 transition-all" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
     </div>
 
-    <!-- ================= MODAL WRAPPER (Handles all modals) ================= -->
-    <div
-        x-show="activeModal"
-        x-cloak
-        class="fixed inset-0 z-50 flex items-center justify-center px-4"
-        role="dialog"
-        aria-modal="true"
-    >
-        <!-- Shared Backdrop -->
-        <div
-            x-show="activeModal"
-            x-transition:enter="ease-out duration-300"
-            x-transition:enter-start="opacity-0"
-            x-transition:enter-end="opacity-100"
-            x-transition:leave="ease-in duration-200"
-            x-transition:leave-start="opacity-100"
-            x-transition:leave-end="opacity-0"
-            class="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
-            @click="activeModal = null"
-        ></div>
+    <a href="{{ route('view.election-control-posistion-setup') }}"
+       class="bg-white border border-gray-100 rounded-2xl shadow-sm px-5 py-4 flex items-center justify-between hover:shadow-md hover:-translate-y-0.5 transition-all group">
+        <div class="flex items-center gap-4">
+            <div class="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 bg-amber-100">
+                <svg class="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+            </div>
+            <div>
+                <p class="text-sm font-bold text-gray-800 group-hover:text-[#1a5c38] transition-colors">Position Setup</p>
+                <p class="text-xs text-gray-400 mt-0.5">Configure election positions</p>
+            </div>
+        </div>
+        <svg class="w-4 h-4 text-gray-300 group-hover:text-[#2d7a52] group-hover:translate-x-0.5 transition-all" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+    </a>
+</div>
 
-        <!-- ================= 1. SCHEDULE SETTINGS MODAL ================= -->
-        <div
-            x-show="activeModal === 'schedule'"
-            x-transition:enter="ease-out duration-300"
-            x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-            x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
-            x-transition:leave="ease-in duration-200"
-            x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
-            x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-            class="bg-white rounded-2xl shadow-xl transform transition-all w-full max-w-lg p-6 relative z-50"
-        >
-            <h2 class="text-2xl font-bold text-gray-900 mb-6">Schedule Settings</h2>
-            <form action="#" method="POST" class="space-y-4">
-                <!-- Election Date Header/Section -->
-                <div class="grid grid-cols-12 gap-4">
-                    <div class="col-span-4 flex justify-end pt-2">
-                        <span class="text-gray-700 font-medium text-base">Election Date:</span>
-                    </div>
-                    <div class="col-span-8 space-y-4">
-                        <!-- From Date Input -->
-                        <div class="grid grid-cols-12 gap-2 items-center">
-                            <label class="col-span-2 text-gray-700 font-medium text-right pr-2">From:</label>
-                            <div class="col-span-10 relative">
-                                <input type="date" class="w-full border border-gray-300 rounded-md p-2.5 text-gray-500 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none uppercase" required>
-                            </div>
-                        </div>
-                        <!-- To Date Input -->
-                        <div class="grid grid-cols-12 gap-2 items-center">
-                            <label class="col-span-2 text-gray-700 font-medium text-right pr-2">To:</label>
-                            <div class="col-span-10 relative">
-                                <input type="date" class="w-full border border-gray-300 rounded-md p-2.5 text-gray-500 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none uppercase" required>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Opening Time -->
-                <div class="grid grid-cols-12 gap-4 items-center">
-                    <label class="col-span-4 text-gray-700 font-medium text-base text-right">Opening Time:</label>
-                    <div class="col-span-8 relative">
-                        <input type="time" class="w-full border border-gray-300 rounded-md p-2.5 text-gray-500 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white">
-                        <div class="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none bg-white border-l border-transparent rounded-r-md">
-                            <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Closing Time -->
-                <div class="grid grid-cols-12 gap-4 items-center">
-                    <label class="col-span-4 text-gray-700 font-medium text-base text-right">Closing Time:</label>
-                    <div class="col-span-8 relative">
-                        <input type="time" class="w-full border border-gray-300 rounded-md p-2.5 text-gray-500 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white">
-                        <div class="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none bg-white border-l border-transparent rounded-r-md">
-                            <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Footer Buttons -->
-                <div class="flex justify-end gap-3 mt-8 pt-4">
-                    <button type="button" @click="activeModal = null" class="px-6 py-2 rounded-md border border-red-500 text-red-500 text-sm font-medium hover:bg-red-50 transition-colors">Cancel</button>
-                    <button type="submit" class="px-8 py-2 rounded-md bg-[#22c504] text-white text-sm font-bold hover:bg-green-600 shadow-md transition-colors">Save</button>
-                </div>
+{{-- Current Election --}}
+@if($activeElection)
+<div class="bg-white border border-gray-100 rounded-2xl shadow-sm p-6">
+    <div class="flex flex-wrap items-center justify-between gap-3 mb-5">
+        <div class="flex items-center gap-3">
+            <h3 class="text-base font-bold text-gray-800">Current Election Settings</h3>
+            @php
+                $statusColor = match($scheduleStatus) { 'active' => 'bg-green-100 text-green-700 border-green-200', 'ready' => 'bg-yellow-100 text-yellow-700 border-yellow-200', 'upcoming' => 'bg-blue-100 text-blue-700 border-blue-200', 'overdue' => 'bg-red-100 text-red-700 border-red-200', default => 'bg-gray-100 text-gray-500 border-gray-200' };
+                $statusLabel = match($scheduleStatus) { 'active' => '● Active', 'ready' => '● Ready to Start', 'upcoming' => '◷ Upcoming', 'overdue' => '⚠ Overdue', default => '○ Not Scheduled' };
+            @endphp
+            <span class="px-3 py-1 rounded-full text-xs font-bold border {{ $statusColor }}">{{ $statusLabel }}</span>
+        </div>
+        <div class="flex items-center gap-2 flex-wrap">
+            @if($canStart && $activeElectionId)
+            <form method="POST" action="{{ route('election.update-status') }}">
+                @csrf
+                <input type="hidden" name="election_id" value="{{ $activeElectionId }}">
+                <input type="hidden" name="status" value="active">
+                <button type="submit" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold text-white shadow-sm hover:opacity-90 transition-all" style="background:linear-gradient(135deg,#2d7a52,#1a5c38);">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.347a1.125 1.125 0 010 1.972l-11.54 6.347a1.125 1.125 0 01-1.667-.986V5.653Z"/></svg>
+                    Start Election
+                </button>
             </form>
-        </div>
-
-        <!-- ================= 2. GENERAL SETTINGS MODAL ================= -->
-        <div
-            x-show="activeModal === 'general'"
-            x-transition:enter="ease-out duration-300"
-            x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-            x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
-            x-transition:leave="ease-in duration-200"
-            x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
-            x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-            class="bg-white rounded-2xl shadow-xl transform transition-all w-full max-w-lg p-6 relative z-50"
-        >
-            <h2 class="text-2xl font-bold text-gray-900 mb-6">General Settings</h2>
-            <form action="#" method="POST" class="space-y-4">
-                <!-- Election Name -->
-                <div class="grid grid-cols-12 gap-4 items-center">
-                    <label class="col-span-4 text-gray-700 font-medium text-base">Election Name:</label>
-                    <div class="col-span-8">
-                        <input type="text" placeholder="Election Name" class="w-full border border-gray-300 rounded-md p-2.5 text-gray-800 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none">
-                    </div>
-                </div>
-
-                <!-- Semester -->
-                <div class="grid grid-cols-12 gap-4 items-center">
-                    <label class="col-span-4 text-gray-700 font-medium text-base">Semester:</label>
-                    <div class="col-span-8 relative">
-                        <select class="w-full border border-gray-300 rounded-md p-2.5 text-gray-500 text-sm appearance-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white">
-                            <option>Select Semester</option>
-                            <option>1st Semester</option>
-                            <option>2nd Semester</option>
-                            <option>Summer</option>
-                        </select>
-                        <div class="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
-                            <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Academic Year -->
-                <div class="grid grid-cols-12 gap-4 items-center">
-                    <label class="col-span-4 text-gray-700 font-medium text-base">Academic Year:</label>
-                    <div class="col-span-8 relative">
-                        <select class="w-full border border-gray-300 rounded-md p-2.5 text-gray-500 text-sm appearance-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white">
-                            <option>Select Academic Year</option>
-                            <option>2025-2026</option>
-                            <option>2026-2027</option>
-                            <option>2027-2028</option>
-                        </select>
-                        <div class="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
-                            <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Footer Buttons -->
-                <div class="flex justify-end gap-3 mt-8 pt-2">
-                    <button type="button" @click="activeModal = null" class="px-6 py-2 rounded-md border border-red-500 text-red-500 text-sm font-medium hover:bg-red-50 transition-colors">Cancel</button>
-                    <button type="submit" class="px-8 py-2 rounded-md bg-[#22c504] text-white text-sm font-bold hover:bg-green-600 shadow-md transition-colors">Save</button>
-                </div>
+            @endif
+            @if($canClose && $activeElectionId)
+            <form method="POST" action="{{ route('election.update-status') }}">
+                @csrf
+                <input type="hidden" name="election_id" value="{{ $activeElectionId }}">
+                <input type="hidden" name="status" value="closed">
+                <button type="submit" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold text-white bg-red-500 hover:bg-red-600 shadow-sm transition-all">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5.25 7.5A2.25 2.25 0 017.5 5.25h9a2.25 2.25 0 012.25 2.25v9a2.25 2.25 0 01-2.25 2.25h-9a2.25 2.25 0 01-2.25-2.25v-9Z"/></svg>
+                    Close Election
+                </button>
             </form>
+            @endif
+            <button @click="activeModal = 'general'" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                Edit General
+            </button>
         </div>
-
     </div>
 
-</body>
-</html>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-5">
+        <div class="bg-[#f4f6f0] rounded-xl p-4"><p class="text-xs text-gray-400 font-semibold mb-1">Election Name</p><p class="text-sm font-bold text-gray-800">{{ $activeElection['election_name'] ?? 'Not Set' }}</p></div>
+        <div class="bg-[#f4f6f0] rounded-xl p-4"><p class="text-xs text-gray-400 font-semibold mb-1">Semester</p><p class="text-sm font-bold text-gray-800">{{ $activeElection['semester'] ?? 'Not Set' }}</p></div>
+        <div class="bg-[#f4f6f0] rounded-xl p-4"><p class="text-xs text-gray-400 font-semibold mb-1">Academic Year</p><p class="text-sm font-bold text-gray-800">{{ $activeElection['academic_year'] ?? 'Not Set' }}</p></div>
+    </div>
+
+    @if(isset($activeElection['date_from']) || isset($activeElection['opening_time']))
+    <div class="flex items-center justify-between mb-3">
+        <h4 class="text-sm font-bold text-gray-700">Schedule Information</h4>
+        <button @click="activeModal = 'schedule'" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+            Edit Schedule
+        </button>
+    </div>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div class="bg-[#f4f6f0] rounded-xl p-4"><p class="text-xs text-gray-400 font-semibold mb-1">Date From</p><p class="text-sm font-bold text-gray-800">{{ isset($activeElection['date_from']) ? date('M d, Y', strtotime($activeElection['date_from'])) : 'Not Set' }}</p></div>
+        <div class="bg-[#f4f6f0] rounded-xl p-4"><p class="text-xs text-gray-400 font-semibold mb-1">Date To</p><p class="text-sm font-bold text-gray-800">{{ isset($activeElection['date_to']) ? date('M d, Y', strtotime($activeElection['date_to'])) : 'Not Set' }}</p></div>
+        <div class="bg-[#f4f6f0] rounded-xl p-4"><p class="text-xs text-gray-400 font-semibold mb-1">Opening Time</p><p class="text-sm font-bold text-gray-800">{{ isset($activeElection['opening_time']) ? date('h:i A', strtotime($activeElection['opening_time'])) : 'Not Set' }}</p></div>
+        <div class="bg-[#f4f6f0] rounded-xl p-4"><p class="text-xs text-gray-400 font-semibold mb-1">Closing Time</p><p class="text-sm font-bold text-gray-800">{{ isset($activeElection['closing_time']) ? date('h:i A', strtotime($activeElection['closing_time'])) : 'Not Set' }}</p></div>
+    </div>
+    @php
+        $autoNote = null;
+        if (isset($activeElection['date_from'], $activeElection['opening_time'], $activeElection['date_to'], $activeElection['closing_time'])) {
+            $startDt = \Carbon\Carbon::parse($activeElection['date_from'] . ' ' . $activeElection['opening_time']);
+            $endDt   = \Carbon\Carbon::parse($activeElection['date_to']   . ' ' . $activeElection['closing_time']);
+            $now     = \Carbon\Carbon::now();
+            if ($now->lessThan($startDt)) { $autoNote = 'Election will automatically start on ' . $startDt->format('M d, Y \a\t h:i A'); }
+            elseif ($now->between($startDt, $endDt) && ($activeElection['status'] ?? '') === 'active') { $autoNote = 'Election will automatically close on ' . $endDt->format('M d, Y \a\t h:i A'); }
+        }
+    @endphp
+    @if($autoNote)
+    <div class="mt-3 flex items-center gap-2 text-xs text-gray-500 bg-[#f4f6f0] rounded-xl px-4 py-2.5">
+        <svg class="w-4 h-4 shrink-0 text-[#2d7a52]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0Z"/></svg>
+        {{ $autoNote }}
+    </div>
+    @endif
+    @endif
+</div>
+@else
+<div class="bg-white border border-gray-100 rounded-2xl shadow-sm p-10 text-center">
+    <div class="text-4xl mb-3">🗳️</div>
+    <p class="text-gray-500 font-semibold">No election configured yet.</p>
+    <p class="text-gray-400 text-sm mt-1">Click <strong>General Settings</strong> to create one.</p>
+</div>
+@endif
+
+{{-- Modals --}}
+<div x-show="activeModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center px-4" role="dialog" aria-modal="true">
+    <div x-show="activeModal" x-transition:enter="ease-out duration-200" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="ease-in duration-150" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" class="fixed inset-0 bg-black/50 backdrop-blur-sm" @click="activeModal = null"></div>
+
+    {{-- Schedule Modal --}}
+    <div x-show="activeModal === 'schedule'" x-transition:enter="ease-out duration-200" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100" x-transition:leave="ease-in duration-150" x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95" class="bg-white rounded-2xl shadow-xl w-full max-w-lg p-6 relative z-50">
+        <div class="flex items-center justify-between mb-5">
+            <h2 class="text-xl font-bold text-gray-900">Schedule Settings</h2>
+            <button @click="activeModal = null" class="text-gray-400 hover:text-gray-600"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg></button>
+        </div>
+        <form action="{{ route('election.save-schedule') }}" method="POST" class="space-y-4">
+            @csrf
+            <div><label class="block text-sm font-semibold text-gray-700 mb-1">Date From</label><input type="date" name="date_from" value="{{ $activeElection['date_from'] ?? '' }}" class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-green-500" required></div>
+            <div><label class="block text-sm font-semibold text-gray-700 mb-1">Date To</label><input type="date" name="date_to" value="{{ $activeElection['date_to'] ?? '' }}" class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-green-500" required></div>
+            <div><label class="block text-sm font-semibold text-gray-700 mb-1">Opening Time</label><input type="time" name="opening_time" value="{{ $activeElection['opening_time'] ?? '' }}" class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-green-500 bg-white" required></div>
+            <div><label class="block text-sm font-semibold text-gray-700 mb-1">Closing Time</label><input type="time" name="closing_time" value="{{ $activeElection['closing_time'] ?? '' }}" class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-green-500 bg-white" required></div>
+            <div class="flex justify-end gap-3 pt-2">
+                <button type="button" @click="activeModal = null" class="px-5 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-colors">Cancel</button>
+                <button type="submit" class="px-6 py-2.5 rounded-xl text-sm font-bold text-white shadow-sm hover:opacity-90 transition-all" style="background:linear-gradient(135deg,#2d7a52,#1a5c38);">Save</button>
+            </div>
+        </form>
+    </div>
+
+    {{-- General Modal --}}
+    <div x-show="activeModal === 'general'" x-transition:enter="ease-out duration-200" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100" x-transition:leave="ease-in duration-150" x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95" class="bg-white rounded-2xl shadow-xl w-full max-w-lg p-6 relative z-50">
+        <div class="flex items-center justify-between mb-5">
+            <h2 class="text-xl font-bold text-gray-900">General Settings</h2>
+            <button @click="activeModal = null" class="text-gray-400 hover:text-gray-600"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg></button>
+        </div>
+        <form action="{{ route('election.save-general') }}" method="POST" class="space-y-4">
+            @csrf
+            <div><label class="block text-sm font-semibold text-gray-700 mb-1">Election Name</label><input type="text" name="election_name" value="{{ $activeElection['election_name'] ?? '' }}" placeholder="e.g., SSC General Election 2025" class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-green-500" required></div>
+            <div><label class="block text-sm font-semibold text-gray-700 mb-1">Semester</label><select name="semester" class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-green-500 bg-white" required><option value="">Select Semester</option><option value="1st Semester" {{ ($activeElection['semester'] ?? '') == '1st Semester' ? 'selected' : '' }}>1st Semester</option><option value="2nd Semester" {{ ($activeElection['semester'] ?? '') == '2nd Semester' ? 'selected' : '' }}>2nd Semester</option></select></div>
+            <div><label class="block text-sm font-semibold text-gray-700 mb-1">Academic Year</label><input type="text" name="academic_year" value="{{ $activeElection['academic_year'] ?? '' }}" placeholder="e.g., 2025-2026" pattern="\d{4}-\d{4}" title="Format: YYYY-YYYY" class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-green-500" required></div>
+            <div class="flex justify-end gap-3 pt-2">
+                <button type="button" @click="activeModal = null" class="px-5 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-colors">Cancel</button>
+                <button type="submit" class="px-6 py-2.5 rounded-xl text-sm font-bold text-white shadow-sm hover:opacity-90 transition-all" style="background:linear-gradient(135deg,#2d7a52,#1a5c38);">Save</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+</div>
+<script>
+    setTimeout(() => { const el = document.getElementById('flash-success'); if (el) { el.style.transition = 'opacity .5s'; el.style.opacity = '0'; setTimeout(() => el.remove(), 500); } }, 5000);
+</script>
+@endsection

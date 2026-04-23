@@ -174,12 +174,20 @@
             background: linear-gradient(180deg, #b8d0b8, #a8c5a8); 
         }
 
+        /* ── Additional Enhancements ── */
         @keyframes fadeInUp {
             from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
         }
-        .content-card { animation: fadeInUp 0.5s ease-out; }
-
+        
+        .content-card {
+            animation: fadeInUp 0.5s ease-out;
+        }
+        
+        .nav-link {
+            position: relative;
+        }
+        
         .nav-link.active::after {
             content: '';
             position: absolute;
@@ -193,12 +201,17 @@
             box-shadow: 0 0 8px rgba(255,255,255,0.6);
         }
 
+        /* ── Responsive Design ── */
         @media (max-width: 1024px) {
             .sidebar { width: 260px; }
             .main-wrap { margin-left: 260px; }
         }
+        
         @media (max-width: 768px) {
-            .sidebar { transform: translateX(-100%); transition: transform 0.3s ease; }
+            .sidebar { 
+                transform: translateX(-100%); 
+                transition: transform 0.3s ease;
+            }
             .main-wrap { margin-left: 0; }
             .topbar { padding: 0 20px; }
             .page-content { padding: 20px; }

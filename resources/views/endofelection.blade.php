@@ -4,320 +4,346 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>End of Election Reports</title>
-
-    <!-- Bootstrap 5 CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <!-- FontAwesome (For Icons) -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #102864;
-            color: white;
-        }
+        * { font-family: 'Plus Jakarta Sans', sans-serif; }
+        body { background: radial-gradient(ellipse at top left, #0d3520 0%, #0a2e1a 50%, #071f12 100%); min-height: 100vh; }
 
-        /* Custom Colors */
-        .bg-main-panel {
-            background-color: #0C3189;
-            border: 1px solid rgba(30, 64, 175, 0.3);
-        }
+        .page-wrapper { padding: 32px 36px; min-height: 100vh; display: flex; flex-direction: column; gap: 24px; }
 
-        /* Back Button */
+        /* Back button */
         .btn-back {
-            background-color: white;
-            color: #113285;
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-            transition: transform 0.2s;
+            width: 42px; height: 42px;
+            background: rgba(255,255,255,.15); backdrop-filter: blur(10px);
+            color: white; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
             text-decoration: none;
-            box-shadow: 0 .5rem 1rem rgba(0,0,0,.15);
+            box-shadow: 0 4px 16px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.2);
+            transition: all .25s; flex-shrink: 0;
+            border: 1px solid rgba(255,255,255,.2);
         }
-        .btn-back:hover { transform: scale(1.1); color: #113285; }
+        .btn-back:hover { background: rgba(255,255,255,.25); color: white; transform: scale(1.08) translateX(-2px); }
 
-        /* Export Button */
+        /* Export button */
         .btn-export {
-            background-color: #22c508; /* Bright Green */
-            color: white;
-            font-weight: 600;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            transition: background 0.2s;
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 10px 22px; border-radius: 12px;
+            background: linear-gradient(135deg, #1a5c38, #2d7a52);
+            color: white; font-weight: 700; font-size: 13px;
+            text-decoration: none; border: none; cursor: pointer;
+            box-shadow: 0 4px 16px rgba(26,92,56,.4);
+            transition: all .2s;
         }
-        .btn-export:hover {
-            background-color: #1ea306;
-            color: white;
+        .btn-export:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(26,92,56,.5); color: white; }
+
+        /* Main panel */
+        .main-panel {
+            background: linear-gradient(160deg, #1e6b42 0%, #165233 60%, #123d28 100%);
+            border-radius: 28px; padding: 32px;
+            box-shadow: 0 20px 60px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.08);
+            border: 1px solid rgba(255,255,255,.07);
+            flex: 1;
         }
 
-        /* Card Styles */
+        /* Report cards */
         .report-card {
-            background-color: white;
-            border-radius: 16px;
-            padding: 20px;
-            color: #333;
-            height: 100%;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            background: linear-gradient(135deg, #ffffff 0%, #f8fdf9 100%);
+            border-radius: 20px; padding: 24px;
+            box-shadow: 0 8px 32px rgba(0,0,0,.12);
+            border: 1px solid rgba(26,92,56,.08);
+            position: relative; overflow: hidden;
+        }
+        .report-card::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+            background: linear-gradient(90deg, #1a5c38, #2d7a52, #4ade80);
+            border-radius: 20px 20px 0 0;
         }
 
-        .card-header-custom {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-        }
+        /* Card header */
+        .card-hdr { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .card-title { font-size: 12px; font-weight: 800; color: #1a3a1a; text-transform: uppercase; letter-spacing: .1em; margin: 0; }
 
-        .card-title {
-            color: #113285;
-            font-weight: 800;
-            font-size: 1rem;
-            text-transform: uppercase;
-            margin: 0;
-        }
+        /* Badges */
+        .badge-green { background: linear-gradient(135deg,#dcfce7,#bbf7d0); color: #15803d; font-size: 11px; font-weight: 700; padding: 4px 12px; border-radius: 20px; border: 1px solid rgba(21,128,61,.2); }
+        .badge-gray  { background: #f4f6f0; color: #6b7280; font-size: 11px; font-weight: 700; padding: 4px 12px; border-radius: 20px; }
+        .badge-winner { background: linear-gradient(135deg,#dcfce7,#bbf7d0); color: #15803d; font-size: 10px; font-weight: 800; padding: 2px 10px; border-radius: 20px; margin-left: 6px; border: 1px solid rgba(21,128,61,.2); }
 
-        /* View Badge */
-        .btn-view {
-            background-color: #dbeafe;
-            color: #1e40af;
-            font-size: 0.75rem;
-            font-weight: 600;
-            padding: 4px 12px;
-            border-radius: 20px;
-            border: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
+        /* Tables */
+        .tbl { width: 100%; border-collapse: collapse; }
+        .tbl thead th {
+            font-size: 10px; font-weight: 800; color: #9ab09a;
+            text-transform: uppercase; letter-spacing: .08em;
+            padding: 0 0 12px 0; border-bottom: 1px solid #e8ede3;
         }
+        .tbl tbody td {
+            padding: 13px 0; font-size: 13.5px; font-weight: 500; color: #374151;
+            border-bottom: 1px solid #f4f6f0; vertical-align: middle;
+        }
+        .tbl tbody tr:last-child td { border-bottom: none; }
+        .tbl tbody tr:hover td { background: #f8fdf9; }
+        .winner-name { font-weight: 800; color: #1a5c38; }
 
-        /* Table Styling within Cards */
-        .table-custom {
-            width: 100%;
-            font-size: 0.85rem;
+        /* Position group header */
+        .pos-header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 8px 0 6px; border-bottom: 2px solid #e8ede3; margin-top: 20px; margin-bottom: 4px;
         }
-        .table-custom thead th {
-            text-transform: uppercase;
-            font-size: 0.75rem;
-            color: #111;
-            font-weight: 800;
-            border-bottom: 2px solid #e5e7eb;
-            padding-bottom: 10px;
-        }
-        .table-custom tbody td {
-            padding: 12px 0;
-            border-bottom: 1px solid #f3f4f6;
-            vertical-align: middle;
-            font-weight: 500;
-            color: #4b5563;
-        }
-        .text-blue-name {
-            color: #113285;
-            font-weight: 700;
-        }
+        .pos-header:first-of-type { margin-top: 0; }
+        .pos-label { font-size: 11px; font-weight: 800; color: #1a5c38; text-transform: uppercase; letter-spacing: .1em; display: flex; align-items: center; gap: 6px; }
+        .pos-label::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: #2d7a52; display: inline-block; }
 
-        /* Specific layout helper */
-        .col-header {
-            text-transform: uppercase;
-            font-weight: 800;
-            font-size: 0.8rem;
-            margin-top: 15px;
-            margin-bottom: 5px;
-            color: #000;
+        /* Progress bar */
+        .prog-wrap { height: 5px; background: #e8f5ee; border-radius: 99px; overflow: hidden; width: 80px; }
+        .prog-bar  { height: 100%; border-radius: 99px; background: linear-gradient(90deg,#1a5c38,#4ade80); }
+
+        /* Empty state */
+        .empty-state { text-align: center; padding: 48px 20px; color: #9ca3af; }
+        .empty-state svg { opacity: .3; margin-bottom: 12px; }
+        .empty-state p { font-weight: 600; font-size: 14px; color: #6b7280; margin: 0; }
+
+        /* Section label */
+        .sec-lbl { display: flex; align-items: center; gap: 7px; font-size: 10.5px; font-weight: 800; color: rgba(255,255,255,.5); text-transform: uppercase; letter-spacing: .1em; margin-bottom: 16px; }
+
+        /* Scrollable right card */
+        .scroll-card { max-height: 680px; overflow-y: auto; }
+        .scroll-card::-webkit-scrollbar { width: 4px; }
+        .scroll-card::-webkit-scrollbar-track { background: transparent; }
+        .scroll-card::-webkit-scrollbar-thumb { background: #c8dcc8; border-radius: 10px; }
+
+        @media print {
+            body { background: white !important; }
+            .btn-back, .btn-export { display: none !important; }
+            .main-panel { background: white !important; box-shadow: none !important; border: none !important; padding: 0 !important; }
+            .report-card { box-shadow: none !important; border: 1px solid #e5e7eb !important; }
         }
     </style>
 </head>
+<body>
+<div class="page-wrapper">
 
-<body class="p-3 p-md-4 min-vh-100 d-flex flex-column">
-
-    <!-- HEADER SECTION -->
-    <div class="container-xl mb-4 px-0">
-        <!-- Back Button and Title Row -->
-        <div class="d-flex align-items-center justify-content-between">
-            <div class="d-flex align-items-center gap-3">
-                <a href="{{ route('view.dashboard') }}" class="btn-back">
-                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
-                </a>
-                <h1 class="h3 fw-bold m-0 text-white">End of Election Reports</h1>
+    {{-- HEADER --}}
+    <div class="flex items-center justify-between">
+        <div class="flex items-center gap-4">
+            <a href="{{ route('view.reports-and-analytics') }}" class="btn-back">
+                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+            </a>
+            <div>
+                <h1 style="font-size:26px;font-weight:800;color:white;letter-spacing:-0.02em;margin:0;text-shadow:0 2px 8px rgba(0,0,0,.2);">End of Election Reports</h1>
+                @if($targetElection)
+                <p style="font-size:13px;color:rgba(255,255,255,.6);font-weight:500;margin:3px 0 0;">
+                    {{ $targetElection['election_name'] ?? 'Election' }}
+                    &mdash; {{ $targetElection['semester'] ?? '' }}
+                    {{ $targetElection['academic_year'] ?? '' }}
+                </p>
+                @endif
             </div>
-
-            <!-- Export Button (Top Right) -->
-            <button class="btn-export">
-                <i class="fa-solid fa-download"></i> Export to PDF
-            </button>
         </div>
+        <a href="{{ route('end-of-election.export-pdf') }}" class="btn-export">
+            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+            Export to PDF
+        </a>
     </div>
 
-    <!-- MAIN CONTAINER -->
-    <div class="container-xl bg-main-panel rounded-4 p-4 shadow-lg flex-fill">
+    {{-- MAIN PANEL --}}
+    <div class="main-panel">
 
-        <div class="row g-4">
+        @if(!$targetElection)
+        <div class="empty-state" style="color:rgba(255,255,255,.5);">
+            <svg width="64" height="64" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            <p style="color:rgba(255,255,255,.5);">No election data available</p>
+        </div>
+        @else
 
-            <!-- LEFT COLUMN (Winners & Year Level) -->
-            <div class="col-lg-6 d-flex flex-column gap-4">
+        {{-- SUMMARY STATS ROW --}}
+        @php
+            $totalWinners = count($results);
+            $totalVotersCount = $totalVoters ?? 0;
+            $overallTurnout = 0;
+            if (!empty($turnout)) {
+                $totalStudents = array_sum(array_column($turnout, 'total_students'));
+                $totalVoted    = array_sum(array_column($turnout, 'voted'));
+                $overallTurnout = $totalStudents > 0 ? round(($totalVoted / $totalStudents) * 100, 1) : 0;
+            }
+        @endphp
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+            <div class="report-card flex items-center gap-4">
+                <div class="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0" style="background:linear-gradient(135deg,#1a5c38,#2d7a52);box-shadow:0 4px 12px rgba(26,92,56,.3);">
+                    <svg width="22" height="22" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                </div>
+                <div>
+                    <div style="font-size:30px;font-weight:800;color:#111827;line-height:1;letter-spacing:-0.02em;">{{ $totalWinners }}</div>
+                    <div style="font-size:11px;font-weight:700;color:#9ab09a;text-transform:uppercase;letter-spacing:.07em;margin-top:3px;">Positions Filled</div>
+                </div>
+            </div>
+            <div class="report-card flex items-center gap-4">
+                <div class="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0" style="background:linear-gradient(135deg,#15803d,#16a34a);box-shadow:0 4px 12px rgba(21,128,61,.3);">
+                    <svg width="22" height="22" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                </div>
+                <div>
+                    <div style="font-size:30px;font-weight:800;color:#111827;line-height:1;letter-spacing:-0.02em;">{{ number_format($totalVotes) }}</div>
+                    <div style="font-size:11px;font-weight:700;color:#9ab09a;text-transform:uppercase;letter-spacing:.07em;margin-top:3px;">Total Votes Cast</div>
+                </div>
+            </div>
+            <div class="report-card flex items-center gap-4">
+                <div class="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0" style="background:linear-gradient(135deg,#0d9488,#0f766e);box-shadow:0 4px 12px rgba(13,148,136,.3);">
+                    <svg width="22" height="22" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"/><path stroke-linecap="round" stroke-linejoin="round" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"/></svg>
+                </div>
+                <div>
+                    <div style="font-size:30px;font-weight:800;color:#111827;line-height:1;letter-spacing:-0.02em;">{{ $overallTurnout }}%</div>
+                    <div style="font-size:11px;font-weight:700;color:#9ab09a;text-transform:uppercase;letter-spacing:.07em;margin-top:3px;">Overall Turnout</div>
+                </div>
+            </div>
+        </div>
 
-                <!-- Card 1: Winners by Position -->
+        {{-- MAIN GRID --}}
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+
+            {{-- LEFT COLUMN --}}
+            <div class="flex flex-col gap-5">
+
+                {{-- Winners by Position --}}
                 <div class="report-card">
-                    <div class="card-header-custom">
+                    <div class="card-hdr">
                         <h5 class="card-title">Winners by Position</h5>
-                        <button class="btn-view"><i class="fa-regular fa-eye"></i> View</button>
+                        <span class="badge-green">{{ count($results) }} Position(s)</span>
                     </div>
-
-                    <table class="table table-custom table-borderless m-0">
+                    @if(empty($results))
+                    <div class="empty-state">
+                        <svg width="48" height="48" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <p>No results yet</p>
+                    </div>
+                    @else
+                    <table class="tbl">
                         <thead>
                             <tr>
-                                <th style="width: 30%">Position</th>
-                                <th style="width: 40%">Name</th>
-                                <th class="text-end">Votes</th>
-                                <th class="text-end">Turnout</th>
+                                <th style="width:30%">Position</th>
+                                <th style="width:40%">Winner</th>
+                                <th class="text-right">Votes</th>
+                                <th class="text-right">%</th>
                             </tr>
                         </thead>
                         <tbody>
+                            @foreach($results as $position => $candidates)
+                            @php $winner = $candidates[0] ?? null; @endphp
+                            @if($winner)
                             <tr>
-                                <td>President</td>
-                                <td class="text-blue-name">Honey Malang</td>
-                                <td class="text-end">834</td>
-                                <td class="text-end">85%</td>
+                                <td style="font-weight:600;color:#374151;">{{ $position }}</td>
+                                <td>
+                                    <span class="winner-name">{{ $winner['name'] }}</span>
+                                    <span class="badge-winner">Winner</span>
+                                </td>
+                                <td style="text-align:right;font-weight:700;color:#1a5c38;">{{ number_format($winner['votes']) }}</td>
+                                <td style="text-align:right;font-weight:600;color:#6b7280;">
+                                    {{ $totalVoters > 0 ? round(($winner['votes'] / $totalVoters) * 100, 1) : 0 }}%
+                                </td>
                             </tr>
-                            <tr>
-                                <td>Vice President</td>
-                                <td class="text-blue-name">Myles Macrohon</td>
-                                <td class="text-end">522</td>
-                                <td class="text-end">73%</td>
-                            </tr>
-                            <tr>
-                                <td>Secretary</td>
-                                <td class="text-blue-name">Jahaira Ampaso</td>
-                                <td class="text-end">220</td>
-                                <td class="text-end">67%</td>
-                            </tr>
-                            <tr>
-                                <td>Auditor</td>
-                                <td class="text-blue-name">Jose Perolino</td>
-                                <td class="text-end">200</td>
-                                <td class="text-end">66%</td>
-                            </tr>
+                            @endif
+                            @endforeach
                         </tbody>
                     </table>
+                    @endif
                 </div>
 
-                <!-- Card 2: Turnout by Year Level -->
+                {{-- Turnout by Year Level --}}
                 <div class="report-card">
-                    <div class="card-header-custom">
+                    <div class="card-hdr">
                         <h5 class="card-title">Turnout by Year Level</h5>
-                        <button class="btn-view"><i class="fa-regular fa-eye"></i> View</button>
                     </div>
-
-                    <table class="table table-custom table-borderless m-0">
+                    @if(empty($turnout))
+                    <div class="empty-state">
+                        <svg width="48" height="48" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                        <p>No turnout data</p>
+                    </div>
+                    @else
+                    <table class="tbl">
                         <thead>
                             <tr>
-                                <th style="width: 40%">Year Level</th>
-                                <th class="text-end">Total</th>
-                                <th class="text-end">Votes</th>
-                                <th class="text-end">Turnout</th>
+                                <th style="width:35%">Year Level</th>
+                                <th style="text-align:right;">Total</th>
+                                <th style="text-align:right;">Voted</th>
+                                <th style="text-align:right;">Turnout</th>
+                                <th style="width:90px;"></th>
                             </tr>
                         </thead>
                         <tbody>
+                            @foreach($turnout as $row)
+                            @php
+                                $p = $row['turnout_percent'] ?? 0;
+                                $barColor = $p >= 70 ? '#16a34a' : ($p >= 40 ? '#2d7a52' : '#f59e0b');
+                            @endphp
                             <tr>
-                                <td>1st Year</td>
-                                <td class="text-end">834</td>
-                                <td class="text-end">834</td>
-                                <td class="text-end">85%</td>
+                                <td style="font-weight:600;color:#374151;">{{ $row['year_level'] }}</td>
+                                <td style="text-align:right;">{{ number_format($row['total_students']) }}</td>
+                                <td style="text-align:right;font-weight:700;color:#1a5c38;">{{ number_format($row['voted']) }}</td>
+                                <td style="text-align:right;font-weight:700;" style="color:{{ $barColor }};">{{ $p }}%</td>
+                                <td>
+                                    <div class="prog-wrap">
+                                        <div class="prog-bar" style="width:{{ min($p,100) }}%;background:{{ $barColor }};"></div>
+                                    </div>
+                                </td>
                             </tr>
-                            <tr>
-                                <td>2nd Year</td>
-                                <td class="text-end">522</td>
-                                <td class="text-end">522</td>
-                                <td class="text-end">73%</td>
-                            </tr>
-                            <tr>
-                                <td>3rd Year</td>
-                                <td class="text-end">220</td>
-                                <td class="text-end">220</td>
-                                <td class="text-end">67%</td>
-                            </tr>
-                            <tr>
-                                <td>4th Year</td>
-                                <td class="text-end">200</td>
-                                <td class="text-end">200</td>
-                                <td class="text-end">66%</td>
-                            </tr>
+                            @endforeach
                         </tbody>
                     </table>
+                    @endif
                 </div>
 
             </div>
 
-            <!-- RIGHT COLUMN (Final Vote Counts) -->
-            <div class="col-lg-6">
-                <div class="report-card">
-                    <div class="card-header-custom">
+            {{-- RIGHT COLUMN: Final Vote Counts --}}
+            <div>
+                <div class="report-card scroll-card">
+                    <div class="card-hdr">
                         <h5 class="card-title">Final Vote Counts</h5>
-                        <button class="btn-view"><i class="fa-regular fa-eye"></i> View</button>
+                        <span class="badge-gray">{{ number_format($totalVotes) }} total votes</span>
                     </div>
 
-                    <!-- Category: President -->
-                    <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-2">
-                        <span class="col-header">PRESIDENT</span>
-                        <div class="d-flex gap-4">
-                            <span class="col-header text-end" style="width: 50px;">VOTES</span>
-                            <span class="col-header text-end" style="width: 60px;">TURNOUT</span>
+                    @if(empty($results))
+                    <div class="empty-state">
+                        <svg width="48" height="48" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                        <p>No votes recorded yet</p>
+                    </div>
+                    @else
+                    @foreach($results as $position => $candidates)
+                    <div class="pos-header">
+                        <span class="pos-label">{{ $position }}</span>
+                        <div style="display:flex;gap:40px;">
+                            <span style="font-size:10px;font-weight:800;color:#9ab09a;text-transform:uppercase;letter-spacing:.08em;width:50px;text-align:right;">Votes</span>
+                            <span style="font-size:10px;font-weight:800;color:#9ab09a;text-transform:uppercase;letter-spacing:.08em;width:60px;text-align:right;">%</span>
                         </div>
                     </div>
-
-                    <table class="table table-custom table-borderless mb-4">
+                    <table class="tbl" style="margin-bottom:8px;">
                         <tbody>
+                            @foreach($candidates as $i => $cand)
                             <tr>
-                                <td>Honey Malang</td>
-                                <td class="text-end" style="width: 60px;">834</td>
-                                <td class="text-end" style="width: 70px;">85%</td>
+                                <td>
+                                    @if($i === 0)
+                                        <span class="winner-name">{{ $cand['name'] }}</span>
+                                        <span class="badge-winner">Winner</span>
+                                    @else
+                                        <span style="color:#6b7280;">{{ $cand['name'] }}</span>
+                                    @endif
+                                </td>
+                                <td style="text-align:right;width:60px;font-weight:{{ $i === 0 ? '800' : '500' }};color:{{ $i === 0 ? '#1a5c38' : '#6b7280' }};">
+                                    {{ number_format($cand['votes']) }}
+                                </td>
+                                <td style="text-align:right;width:70px;font-weight:600;color:#9ab09a;">
+                                    {{ $totalVoters > 0 ? round(($cand['votes'] / $totalVoters) * 100, 1) : 0 }}%
+                                </td>
                             </tr>
-                            <tr>
-                                <td>Myles Macrohon</td>
-                                <td class="text-end">522</td>
-                                <td class="text-end">73%</td>
-                            </tr>
+                            @endforeach
                         </tbody>
                     </table>
-
-                    <!-- Category: Vice President -->
-                    <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-2">
-                        <span class="col-header">VICE PRESIDENT</span>
-                        <div class="d-flex gap-4">
-                            <span class="col-header text-end" style="width: 50px;">VOTES</span>
-                            <span class="col-header text-end" style="width: 60px;">TURNOUT</span>
-                        </div>
-                    </div>
-
-                    <table class="table table-custom table-borderless">
-                        <tbody>
-                            <tr>
-                                <td>Jahaira Ampaso</td>
-                                <td class="text-end" style="width: 60px;">220</td>
-                                <td class="text-end" style="width: 70px;">67%</td>
-                            </tr>
-                            <tr>
-                                <td>Jose Perolino</td>
-                                <td class="text-end">200</td>
-                                <td class="text-end">66%</td>
-                            </tr>
-                        </tbody>
-                    </table>
-
+                    @endforeach
+                    @endif
                 </div>
             </div>
 
-        </div> <!-- End Row -->
+        </div>
+        @endif
     </div>
 
-    <!-- Bootstrap JS Bundle -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</div>
 </body>
 </html>
