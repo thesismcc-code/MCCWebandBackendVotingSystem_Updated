@@ -17,6 +17,8 @@ class User
     private ?string $email_verified_at;
     private ?string $created_at;
     private ?string $updated_at;
+    private ?string $year_level;
+    private ?string $course;
 
     public function __construct(
         ?string $id,
@@ -31,7 +33,9 @@ class User
         ?string $comelec_id = null,
         ?string $email_verified_at = null,
         ?string $created_at = null,
-        ?string $updated_at = null
+        ?string $updated_at = null,
+        ?string $year_level = null,
+        ?string $course = null,
     ) {
         $this->id = $id;
         $this->first_name = $first_name;
@@ -46,6 +50,8 @@ class User
         $this->email_verified_at = $email_verified_at;
         $this->created_at = $created_at;
         $this->updated_at = $updated_at;
+        $this->year_level = $year_level;
+        $this->course = $course;
     }
 
     public function toArray(): array
@@ -130,5 +136,15 @@ class User
     public function getUpdatedAt(): ?string
     {
         return $this->updated_at;
+    }
+
+    public function getYearLevel(): ?string
+    {
+        return $this->year_level;
+    }
+
+    public function getCourse(): ?string
+    {
+        return $this->course;
     }
 }

@@ -24,19 +24,23 @@ class EloquentAuthRepository implements AuthRepository
         $user = $this->userRepository->findByEmail($email);
 
         if (!$user || !Hash::check($password, $user->getPassword())) {
+            // Log failed login attempt
+            app(\App\Services\SecurityLogger::class)->logFailedLogin($email, 'Invalid credentials', request());
             return null;
         }
 
         Session::put('auth_user', [
-            'id'          => $user->getId(),
-            'first_name'  => $user->getFirstName(),
-            'middle_name' => $user->getMiddleName(),
-            'last_name'   => $user->getLastName(),
-            'email'       => $user->getEmail(),
-            'role'        => $user->getRole(),
-            'student_id'  => $user->getStudentId(),
-            'comelec_id'  => $user->getComelecId(),
-            'admin_id'    => $user->getAdminId(),
+            'id'                => $user->getId(),
+            'first_name'        => $user->getFirstName(),
+            'middle_name'       => $user->getMiddleName(),
+            'last_name'         => $user->getLastName(),
+            'email'             => $user->getEmail(),
+            'role'              => $user->getRole(),
+            'student_id'        => $user->getStudentId(),
+            'comelec_id'        => $user->getComelecId(),
+            'admin_id'          => $user->getAdminId(),
+            'year_level'        => $user->getYearLevel(),
+            'email_verified_at' => $user->getEmailVerifiedAt(),
         ]);
 
         Session::regenerate();
@@ -57,12 +61,14 @@ class EloquentAuthRepository implements AuthRepository
         }
 
         Session::put('auth_user', [
-            'id'         => $user->getId(),
-            'email'      => $user->getEmail(),
-            'role'       => $user->getRole(),
-            'first_name' => $user->getFirstName(),
-            'last_name'  => $user->getLastName(),
-            'student_id' => $user->getStudentId(),
+            'id'                 => $user->getId(),
+            'email'              => $user->getEmail(),
+            'role'               => $user->getRole(),
+            'first_name'         => $user->getFirstName(),
+            'last_name'          => $user->getLastName(),
+            'student_id'         => $user->getStudentId(),
+            'year_level'         => $user->getYearLevel(),
+            'email_verified_at'  => $user->getEmailVerifiedAt(),
         ]);
 
         return $user;
@@ -107,6 +113,29 @@ class EloquentAuthRepository implements AuthRepository
         }
     }
 
+    
+    public function loginJwtWithStudentID(string $studentId, string $password): string
+    {
+        if (!$this->userRepository->validateStudentID($studentId)) {
+            throw new \InvalidArgumentException('Student ID not found.');
+        }
+        $user = $this->userRepository->findByStudentID($studentId);
+        if (!password_verify($password, $user->getPassword())) {
+            throw new \InvalidArgumentException('Invalid Student ID or password.');
+        }
+        try {
+            $payload = JWTAuth::factory()->customClaims([
+                'sub'        => $user->getId(),
+                'student_id' => $user->getStudentId(),
+                'first_name' => $user->getFirstName(),
+                'last_name'  => $user->getLastName(),
+                'role'       => $user->getRole(),
+            ])->make();
+            return JWTAuth::encode($payload)->get();
+        } catch (JWTException $e) {
+            throw new \RuntimeException('Could not create token.');
+        }
+    }
     public function logoutJwt(string $token): bool
     {
         try {
@@ -117,3 +146,4 @@ class EloquentAuthRepository implements AuthRepository
         }
     }
 }
+

@@ -16,7 +16,27 @@ return Application::configure(basePath: dirname(__DIR__))
             'auth.jwt'     => \App\Http\Middleware\JwtMiddleware::class,
             'auth.session' => \App\Http\Middleware\SessionAuthMiddleware::class,
         ]);
+        $middleware->prepend(\Illuminate\Http\Middleware\HandleCors::class);
+        $middleware->validateCsrfTokens(except: [
+            'validate-login',
+            'login',
+            'student-validate-login',
+            'logout',
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+        // Handle CSRF token mismatch gracefully
+        $exceptions->renderable(function (\Illuminate\Session\TokenMismatchException $e, $request) {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Your session has expired. Please refresh the page and try again.',
+                ], 419);
+            }
+            
+            return redirect()->back()
+                ->withInput($request->except('_token', 'password'))
+                ->with('error', 'Your session has expired. Please try again.');
+        });
     })->create();
+

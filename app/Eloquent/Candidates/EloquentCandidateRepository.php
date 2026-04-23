@@ -14,9 +14,6 @@ class EloquentCandidateRepository implements CandidatesRepository
     private const COLLECTIONS            = 'candidates';
     private const ELECTIONS_COLLECTIONS  = 'elections';
 
-    // Fixed Type: array, not string
-    private array|null $activeElectionIdsCache = null;
-
     public function __construct(Database $db)
     {
         $this->db          = $db->getReference(self::COLLECTIONS);
@@ -29,23 +26,19 @@ class EloquentCandidateRepository implements CandidatesRepository
      */
     private function getActiveElectionIds(): array
     {
-        // If cache exists, return it immediately (maintains array type)
-        if ($this->activeElectionIdsCache !== null) {
-            return $this->activeElectionIdsCache;
-        }
+        return cache()->remember('active_election_ids_candidates', now()->addMinutes(5), function () {
+            $snapshot = $this->electionsDb
+                ->orderByChild('status')
+                ->equalTo('active')
+                ->getSnapshot();
 
-        // Fetch data from database
-        $snapshot = $this->electionsDb
-            ->orderByChild('status')
-            ->equalTo('active')
-            ->getSnapshot();
+            $data = $snapshot->exists() && $snapshot->getValue() !== null
+                ? $snapshot->getValue()
+                : null;
 
-        $data = $snapshot->exists() && $snapshot->getValue() !== null
-            ? $snapshot->getValue()
-            : null;
-
-        // Ensure we return an array, even if empty
-        return $this->activeElectionIdsCache = array_keys($data ?? []);
+            // Ensure we return an array, even if empty
+            return array_keys($data ?? []);
+        });
     }
 
     private function toCandidate(string $id, array $data): Candidates
@@ -77,34 +70,36 @@ class EloquentCandidateRepository implements CandidatesRepository
      */
     public function getRunnCandidates(): array
     {
-        $activeElectionIds = $this->getActiveElectionIds();
+        return cache()->remember('running_candidates', now()->addMinutes(5), function () {
+            $activeElectionIds = $this->getActiveElectionIds();
 
-        if (empty($activeElectionIds)) {
-            return [];
-        }
-
-        $snapshot = $this->db->getSnapshot();
-        $candidates = [];
-
-        foreach ($snapshot->getValue() ?? [] as $key => $data) {
-            // Check if data exists before accessing keys
-            if (
-                !empty($data['election_id']) &&
-                !empty($data['status']) &&
-                in_array($data['election_id'], $activeElectionIds, true) &&
-                $data['status'] === 'approved'
-            ) {
-                $candidates[] = $this->toCandidate((string) $key, $data);
+            if (empty($activeElectionIds)) {
+                return [];
             }
-        }
 
-        return $candidates;
+            $snapshot = $this->db->getSnapshot();
+            $candidates = [];
+
+            foreach ($snapshot->getValue() ?? [] as $key => $data) {
+                // Check if data exists before accessing keys
+                if (
+                    !empty($data['election_id']) &&
+                    !empty($data['status']) &&
+                    in_array($data['election_id'], $activeElectionIds, true) &&
+                    $data['status'] === 'approved'
+                ) {
+                    $candidates[] = $this->toCandidate((string) $key, $data);
+                }
+            }
+
+            return $candidates;
+        });
     }
 
     public function getRunnCandidatesCount(): int
     {
-        $candidates = $this->getRunnCandidates();
-
-        return count($candidates);
+        return cache()->remember('running_candidates_count', now()->addMinutes(5), function () {
+            return count($this->getRunnCandidates());
+        });
     }
 }

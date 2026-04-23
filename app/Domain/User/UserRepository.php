@@ -68,4 +68,10 @@ interface UserRepository
     public function realtimeVoterTurnout(): array;
     public function voterTurnoutByYearLevel(): array;
     public function countUsersSummary():array;
+
+    /**
+     * Get all students with eligibility data for the eligibility page.
+     * Returns a paginated collection with total, eligible, not_eligible counts.
+     */
+    public function getStudentsEligibility(int $perPage, ?string $search = null, ?string $course = null, ?string $status = null): array;
 }

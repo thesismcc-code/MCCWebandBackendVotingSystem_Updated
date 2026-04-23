@@ -60,4 +60,10 @@ class RegisterAuth
     {
         return $this->authRepository->loginWithStudentID($studentId, $password);
     }
+
+    public function loginJwtWithStudentID(string $studentId, string $password): string
+    {
+        return $this->authRepository->loginJwtWithStudentID($studentId, $password);
+    }
 }
+

@@ -7,6 +7,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Session;
 use App\Application\RegisterAuth\RegisterAuth;
+use App\Services\SecurityLogger;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Tymon\JWTAuth\Exceptions\JWTException;
 use Tymon\JWTAuth\Exceptions\TokenExpiredException;
@@ -15,18 +16,16 @@ use Tymon\JWTAuth\Exceptions\TokenInvalidException;
 class AuthController extends Controller
 {
     private RegisterAuth $registerAuth;
+    private SecurityLogger $logger;
 
-    public function __construct(RegisterAuth $registerAuth)
+    public function __construct(RegisterAuth $registerAuth, SecurityLogger $logger)
     {
         $this->registerAuth = $registerAuth;
+        $this->logger = $logger;
     }
 
     public function index()
     {
-        if (Session::has('auth_user')) {
-            return $this->redirectByRole(Session::get('auth_user.role'));
-        }
-
         return view('index');
     }
 
@@ -49,8 +48,14 @@ class AuthController extends Controller
                 $request->input('password')
             );
 
+            // Log successful login
+            $this->logger->log('info', ucfirst($user->getRole()) . ' logged in', ucfirst($user->getRole()));
+
             return $this->redirectByRole($user->getRole());
         } catch (\InvalidArgumentException $e) {
+            // Log failed login
+            $this->logger->log('error', 'Failed login attempt: ' . $e->getMessage(), 'Unknown');
+            
             return back()
                 ->withInput()
                 ->with('error', $e->getMessage());
@@ -114,8 +119,23 @@ class AuthController extends Controller
                 }
             }
 
-            return $this->redirectByRole($user->getRole());
+            // Log successful student login
+            $this->logger->log('info', 'Student logged in', 'Student');
+
+            // All students must verify their email via OTP before accessing the dashboard
+            // Once verified (email_verified_at is set), they go straight to dashboard on future logins
+            $isVerified = !empty($user->getEmailVerifiedAt());
+
+            if ($isVerified) {
+                return redirect()->route('view.student-dashboard');
+            }
+
+            // Redirect to OTP verification
+            return redirect()->route('view.student-verification');
         } catch (\InvalidArgumentException $e) {
+            // Log failed student login
+            $this->logger->log('error', 'Failed student login: ' . $e->getMessage(), 'Student');
+            
             return back()
                 ->withInput()
                 ->with('error', $e->getMessage());
@@ -127,7 +147,9 @@ class AuthController extends Controller
     }
     public function logout()
     {
+        $role = Session::get('auth_user.role', 'admin');
         $userId = Session::get('auth_user.id', '');
+        $this->logger->log('info', ucfirst($role) . ' logged out', ucfirst($role));
         $this->registerAuth->logout($userId);
 
         return redirect()->route('login')
@@ -136,6 +158,7 @@ class AuthController extends Controller
     public function logoutStudent()
     {
         $userId = Session::get('auth_user.id', '');
+        $this->logger->log('info', 'Student logged out', 'Student');
         $this->registerAuth->logout($userId);
 
         return redirect('/students')

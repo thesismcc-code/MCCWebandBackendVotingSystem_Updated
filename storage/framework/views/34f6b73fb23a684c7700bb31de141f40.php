@@ -1,0 +1,112 @@
+
+<?php $__env->startSection('title', 'Security Logs — MCC Voting System'); ?>
+<?php $__env->startSection('page-title', 'Security Logs'); ?>
+<?php $__env->startSection('page-sub', 'Monitor suspicious and failed authentication attempts'); ?>
+
+<?php $__env->startSection('content'); ?>
+
+<div x-data="{ searchQuery: '<?php echo e($searchQuery); ?>', courseFilter: '<?php echo e($courseFilter); ?>', yearLevelFilter: '<?php echo e($yearLevelFilter); ?>' }">
+
+
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+    <div class="bg-white border border-gray-100 rounded-2xl shadow-sm px-5 py-4 flex items-center gap-4">
+        <div class="w-12 h-12 rounded-xl flex items-center justify-center shrink-0" style="background:linear-gradient(135deg,#1a5c38,#2d7a52);">
+            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+        </div>
+        <div>
+            <p class="text-2xl font-extrabold text-gray-900"><?php echo e($stats['duplicate_vote_attempts']); ?></p>
+            <p class="text-xs font-semibold text-gray-500 mt-0.5">Duplicate Vote Attempts</p>
+        </div>
+    </div>
+    <div class="bg-white border border-gray-100 rounded-2xl shadow-sm px-5 py-4 flex items-center gap-4">
+        <div class="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 bg-red-100">
+            <svg class="w-6 h-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.082 16.5c-.77.833.192 2.5 1.732 2.5z"/></svg>
+        </div>
+        <div>
+            <p class="text-2xl font-extrabold text-gray-900"><?php echo e($stats['rejected_fingerprint_scans']); ?></p>
+            <p class="text-xs font-semibold text-gray-500 mt-0.5">Rejected Fingerprint Scans</p>
+        </div>
+    </div>
+    <div class="bg-white border border-gray-100 rounded-2xl shadow-sm px-5 py-4 flex items-center gap-4">
+        <div class="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 bg-amber-100">
+            <svg class="w-6 h-6 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728L5.636 5.636"/></svg>
+        </div>
+        <div>
+            <p class="text-2xl font-extrabold text-gray-900"><?php echo e($stats['denied_access_attempts']); ?></p>
+            <p class="text-xs font-semibold text-gray-500 mt-0.5">Denied Access Attempts</p>
+        </div>
+    </div>
+</div>
+
+
+<form id="filter-form" method="GET" action="<?php echo e(route('view.security-logs')); ?>" class="flex flex-wrap gap-3 mb-5">
+    <div class="relative flex-1 min-w-56">
+        <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+        <input type="text" name="search" x-model="searchQuery" @input.debounce.500ms="$el.form.submit()" value="<?php echo e($searchQuery); ?>"
+               placeholder="Search by Student ID or Name"
+               class="w-full pl-9 pr-4 py-2.5 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-green-500 text-gray-700 placeholder-gray-400">
+    </div>
+    <select name="course" x-model="courseFilter" @change="$el.form.submit()"
+            class="px-4 py-2.5 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-green-500 text-gray-600 min-w-44">
+        <option value="">All Courses</option>
+        <?php $__currentLoopData = $courses; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $course): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+            <option value="<?php echo e($course); ?>" <?php echo e($courseFilter === $course ? 'selected' : ''); ?>><?php echo e($course); ?></option>
+        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+    </select>
+    <select name="year_level" x-model="yearLevelFilter" @change="$el.form.submit()"
+            class="px-4 py-2.5 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-green-500 text-gray-600 min-w-36">
+        <option value="">Year Level</option>
+        <?php $__currentLoopData = $yearLevels; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $yearLevel): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+            <option value="<?php echo e($yearLevel); ?>" <?php echo e($yearLevelFilter === $yearLevel ? 'selected' : ''); ?>><?php echo e($yearLevel); ?></option>
+        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+    </select>
+</form>
+
+
+<div class="rounded-2xl border border-gray-100 overflow-hidden shadow-sm">
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+            <thead>
+                <tr style="background:#1a5c38;">
+                    <th class="px-5 py-3.5 text-left text-[11px] font-bold text-white uppercase tracking-widest">Student ID</th>
+                    <th class="px-5 py-3.5 text-left text-[11px] font-bold text-white uppercase tracking-widest">Name</th>
+                    <th class="px-5 py-3.5 text-left text-[11px] font-bold text-white uppercase tracking-widest">Course</th>
+                    <th class="px-5 py-3.5 text-left text-[11px] font-bold text-white uppercase tracking-widest">Year Level</th>
+                    <th class="px-5 py-3.5 text-left text-[11px] font-bold text-white uppercase tracking-widest">First Attempt</th>
+                    <th class="px-5 py-3.5 text-left text-[11px] font-bold text-white uppercase tracking-widest">Second Attempt</th>
+                    <th class="px-5 py-3.5 text-center text-[11px] font-bold text-white uppercase tracking-widest">Status</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100 bg-white">
+                <?php $__empty_1 = true; $__currentLoopData = $logs; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $log): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+                <tr class="hover:bg-green-50/30 transition-colors">
+                    <td class="px-5 py-3.5 font-bold text-[13px]" style="color:#1a5c38;"><?php echo e($log['student_id']); ?></td>
+                    <td class="px-5 py-3.5 font-semibold text-gray-800 text-[13px]"><?php echo e($log['name']); ?></td>
+                    <td class="px-5 py-3.5 text-gray-500 text-[13px]"><?php echo e($log['course']); ?></td>
+                    <td class="px-5 py-3.5 text-gray-500 text-[13px]"><?php echo e($log['year_level']); ?></td>
+                    <td class="px-5 py-3.5 text-gray-400 text-[13px]"><?php echo e($log['first_attempt'] ? \Carbon\Carbon::parse($log['first_attempt'])->format('M d, Y g:iA') : '—'); ?></td>
+                    <td class="px-5 py-3.5 text-gray-400 text-[13px]"><?php echo e($log['second_attempt'] ? \Carbon\Carbon::parse($log['second_attempt'])->format('M d, Y g:iA') : '—'); ?></td>
+                    <td class="px-5 py-3.5 text-center">
+                        <?php if($log['status'] === 'Blocked'): ?>
+                            <span class="inline-block px-3 py-1 rounded-full text-xs font-bold bg-red-100 text-red-700">Blocked</span>
+                        <?php elseif($log['status'] === 'Rejected'): ?>
+                            <span class="inline-block px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-700">Rejected</span>
+                        <?php elseif($log['status'] === 'Denied'): ?>
+                            <span class="inline-block px-3 py-1 rounded-full text-xs font-bold bg-orange-100 text-orange-700">Denied</span>
+                        <?php else: ?>
+                            <span class="inline-block px-3 py-1 rounded-full text-xs font-bold bg-gray-100 text-gray-600"><?php echo e($log['status']); ?></span>
+                        <?php endif; ?>
+                    </td>
+                </tr>
+                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
+                <tr><td colspan="7" class="px-5 py-14 text-center"><p class="text-sm font-medium text-gray-300">No security incidents found.</p></td></tr>
+                <?php endif; ?>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+</div>
+<?php $__env->stopSection(); ?>
+
+<?php echo $__env->make('components.admin-layout', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH C:\MCCWebandBackendVotingSystem\resources\views/security-logs.blade.php ENDPATH**/ ?>

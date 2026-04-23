@@ -216,16 +216,18 @@ class EloquentUserRepository implements UserRepository
 
     private function getActiveElectionIds(): array
     {
-        $snapshot = $this->electionsDb
-            ->orderByChild('status')
-            ->equalTo('active')
-            ->getSnapshot();
+        return cache()->remember('active_election_ids', now()->addMinutes(5), function () {
+            $snapshot = $this->electionsDb
+                ->orderByChild('status')
+                ->equalTo('active')
+                ->getSnapshot();
 
-        if (!$snapshot->exists() || $snapshot->getValue() === null) {
-            return [];
-        }
+            if (!$snapshot->exists() || $snapshot->getValue() === null) {
+                return [];
+            }
 
-        return array_keys($snapshot->getValue());
+            return array_keys($snapshot->getValue());
+        });
     }
 
     public function countStudentVoters(?array $activeElectionIds = null): int
@@ -256,30 +258,25 @@ class EloquentUserRepository implements UserRepository
             return 0;
         }
 
-        $allUsers = $this->db->getValue();
+        // Use cached collection instead of direct getValue()
+        $allUsers = $this->getUsersCollection();
 
-        if (empty($allUsers)) {
+        if ($allUsers->isEmpty()) {
             return 0;
         }
 
-        return count(array_filter(
-            array_intersect_key($allUsers, $uniqueVoterIds),
-            fn($user) => isset($user['role']) && $user['role'] === 'student'
-        ));
+        return $allUsers->filter(function ($user, $userId) use ($uniqueVoterIds) {
+            return isset($uniqueVoterIds[$userId]) && 
+                   isset($user['role']) && 
+                   $user['role'] === 'student';
+        })->count();
     }
 
     public function countTotalStudents(): int
     {
-        $snapshot = $this->db
-            ->orderByChild('role')
-            ->equalTo('student')
-            ->getSnapshot();
-
-        if (!$snapshot->exists() || $snapshot->getValue() === null) {
-            return 0;
-        }
-
-        return count($snapshot->getValue());
+        return $this->getUsersCollection()
+            ->filter(fn($user) => isset($user['role']) && $user['role'] === 'student')
+            ->count();
     }
 
     public function getVoterTurnout(): array
@@ -333,7 +330,6 @@ class EloquentUserRepository implements UserRepository
     public function voterTurnoutByYearLevel(): array
     {
         $activeElectionIds = $this->getActiveElectionIds();
-        $currentYear       = (int) date('Y');
 
         $votedByStudent = [];
 
@@ -352,9 +348,9 @@ class EloquentUserRepository implements UserRepository
             }
         }
 
-        $allUsers = $this->db->getValue();
+        $allUsers = $this->getUsersCollection();
 
-        if (empty($allUsers)) {
+        if ($allUsers->isEmpty()) {
             return [];
         }
 
@@ -365,46 +361,52 @@ class EloquentUserRepository implements UserRepository
                 continue;
             }
 
-            $parts      = explode('-', $user['student_id']);
-            $enrollYear = isset($parts[1]) && is_numeric($parts[1]) ? (int) $parts[1] : null;
+            // Use the year field directly from user data
+            $rawYear = $user['year'] ?? $user['Year'] ?? $user['year_level'] ?? null;
 
-            if ($enrollYear === null) {
+            if ($rawYear === null || $rawYear === '') {
                 continue;
             }
 
-            if (!isset($yearGroups[$enrollYear])) {
-                $yearGroups[$enrollYear] = ['total' => 0, 'voted' => 0];
+            // Normalize: extract numeric value (handles "1st Year", "1", "2nd Year", etc.)
+            $yearNum = (int) preg_replace('/[^0-9]/', '', (string) $rawYear);
+
+            if ($yearNum < 1 || $yearNum > 6) {
+                continue;
             }
 
-            $yearGroups[$enrollYear]['total']++;
+            if (!isset($yearGroups[$yearNum])) {
+                $yearGroups[$yearNum] = ['total' => 0, 'voted' => 0];
+            }
+
+            $yearGroups[$yearNum]['total']++;
 
             if (isset($votedByStudent[$userId])) {
-                $yearGroups[$enrollYear]['voted']++;
+                $yearGroups[$yearNum]['voted']++;
             }
         }
 
-        // Sort ascending by enrollment year so 1st Year appears first
-        ksort($yearGroups);
+        // Sort descending: 4th Year first, 1st Year last
+        krsort($yearGroups);
 
         $result = [];
 
-        foreach ($yearGroups as $enrollYear => $counts) {
-            $total     = $counts['total'];
-            $voted     = $counts['voted'];
-            $yearLevel = $currentYear - $enrollYear + 1;
+        foreach ($yearGroups as $yearNum => $counts) {
+            $total = $counts['total'];
+            $voted = $counts['voted'];
 
-            $label = match (true) {
-                $yearLevel === 1 => '1st Year',
-                $yearLevel === 2 => '2nd Year',
-                $yearLevel === 3 => '3rd Year',
-                $yearLevel === 4 => '4th Year',
-                $yearLevel > 4   => "{$yearLevel}th Year",
-                default          => "Year {$yearLevel}",
+            $label = match ($yearNum) {
+                1 => '1st Year',
+                2 => '2nd Year',
+                3 => '3rd Year',
+                4 => '4th Year',
+                5 => '5th Year',
+                default => "{$yearNum}th Year",
             };
 
             $result[] = [
                 'year_level'      => $label,
-                'enroll_year'     => $enrollYear,
+                'enroll_year'     => $yearNum,
                 'total_students'  => $total,
                 'voted'           => $voted,
                 'not_yet_voted'   => $total - $voted,
@@ -431,6 +433,8 @@ class EloquentUserRepository implements UserRepository
             email_verified_at: $data['email_verified_at'] ?? null,
             created_at: $data['created_at'] ?? null,
             updated_at: $data['updated_at'] ?? null,
+            year_level: $data['year_level'] ?? null,
+            course: $data['course'] ?? null,
         );
     }
 
@@ -450,6 +454,8 @@ class EloquentUserRepository implements UserRepository
             email_verified_at: $data['email_verified_at'] ?? null,
             created_at: $data['created_at'] ?? null,
             updated_at: $data['updated_at'] ?? null,
+            year_level: $data['year_level'] ?? null,
+            course: $data['course'] ?? null,
         );
     }
     public function countUsersSummary(): array
@@ -468,9 +474,68 @@ class EloquentUserRepository implements UserRepository
         ];
     }
 
+    public function getStudentsEligibility(int $perPage, ?string $search = null, ?string $course = null, ?string $status = null): array
+    {
+        // Always fetch fresh data — bypass cache
+        $snapshot = $this->db->getSnapshot();
+        $allUsers = collect();
+        if ($snapshot->exists() && $snapshot->getValue() !== null) {
+            $allUsers = collect($snapshot->getValue())->filter(fn($user) => empty($user['is_deleted']));
+        }
+
+        $students = $allUsers->filter(fn($user) => isset($user['role']) && $user['role'] === 'student');
+
+        // Search filter
+        if ($search) {
+            $lowerSearch = strtolower($search);
+            $students = $students->filter(function ($user) use ($lowerSearch) {
+                $fullName  = strtolower(($user['first_name'] ?? '') . ' ' . ($user['last_name'] ?? ''));
+                $studentId = strtolower($user['student_id'] ?? '');
+                return str_contains($fullName, $lowerSearch) || str_contains($studentId, $lowerSearch);
+            });
+        }
+
+        // Course filter
+        if ($course && $course !== 'all') {
+            $students = $students->filter(fn($user) => strtolower($user['course'] ?? '') === strtolower($course));
+        }
+
+        // Compute totals before status filter
+        $total       = $students->count();
+        $eligible    = $students->filter(fn($u) => !empty($u['email_verified_at']))->count();
+        $notEligible = $total - $eligible;
+
+        // Status filter
+        if ($status === 'eligible') {
+            $students = $students->filter(fn($u) => !empty($u['email_verified_at']));
+        } elseif ($status === 'not_eligible') {
+            $students = $students->filter(fn($u) => empty($u['email_verified_at']));
+        }
+
+        // Paginate
+        $currentPage = LengthAwarePaginator::resolveCurrentPage();
+        $sliced      = $students->slice(($currentPage - 1) * $perPage, $perPage);
+        $items       = $sliced->map(fn($data, $key) => $this->toUser((string) $key, $data))->values();
+
+        $paginator = new LengthAwarePaginator(
+            $items,
+            $students->count(),
+            $perPage,
+            $currentPage,
+            ['path' => request()->url(), 'query' => request()->query()]
+        );
+
+        return [
+            'total'       => $total,
+            'eligible'    => $eligible,
+            'notEligible' => $notEligible,
+            'paginator'   => $paginator,
+        ];
+    }
+
     private function getUsersCollection(): Collection
     {
-        return cache()->remember('all_users_raw', now()->addMinutes(5), function () {
+        return cache()->remember('all_users_raw', now()->addMinutes(10), function () {
             $snapshot = $this->db->getSnapshot();
             if (!$snapshot->exists() || $snapshot->getValue() === null) {
                 return collect();

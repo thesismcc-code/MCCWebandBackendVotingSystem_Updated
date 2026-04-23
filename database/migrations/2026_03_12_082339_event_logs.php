@@ -8,20 +8,22 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('system_logs', function (Blueprint $table) {
+        Schema::create('event_logs', function (Blueprint $table) {
             $table->id();
-            $table->enum('level', ['info', 'warning', 'error', 'critical']);
-            $table->text('message');
+            $table->string('event_type', 100);
+            $table->string('user_id', 100)->nullable();
+            $table->string('user_role', 50)->nullable();
+            $table->text('description');
             $table->json('context')->nullable();
             $table->timestamp('created_at')->nullable();
-            $table->index('level',                  'idx_system_logs_level');
-            $table->index('created_at',             'idx_system_logs_created');
-            $table->index(['level', 'created_at'],  'idx_system_logs_level_date');
+            $table->index('event_type',             'idx_event_logs_type');
+            $table->index('user_id',                'idx_event_logs_user');
+            $table->index('created_at',             'idx_event_logs_created');
         });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('system_logs');
+        Schema::dropIfExists('event_logs');
     }
 };

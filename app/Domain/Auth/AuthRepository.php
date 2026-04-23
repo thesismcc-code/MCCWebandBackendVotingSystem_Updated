@@ -11,4 +11,6 @@ interface AuthRepository
     public function loginJwt(string $email, string $password): ?string;
     public function logoutJwt(string $token): bool;
     public function loginWithStudentID(string $studentId, string $password): User;
+    public function loginJwtWithStudentID(string $studentId, string $password): string;
 }
+
